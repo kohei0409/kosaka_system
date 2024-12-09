@@ -6,9 +6,14 @@ use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 
+
+
+// 認証関連のルートをロード
+require __DIR__ . '/auth.php';
+
 // ホームページ
 Route::get('/', function () {
-    return view('welcome');
+   return redirect('/login');
 });
 
 // ダッシュボードリダイレクト
@@ -21,6 +26,7 @@ Route::get('/redirect', function () {
         'Manager' => '/manager',
         'User' => '/user',
     ];
+
 
     return isset($routes[$role]) ? redirect($routes[$role]) : redirect('/unauthorized');
 })->middleware('auth')->name('redirect');
@@ -79,5 +85,15 @@ Route::get('/debug', function () {
     ]);
 })->middleware('auth');
 
-// 認証関連のルートをロード
-require __DIR__ . '/auth.php';
+Route::middleware(['auth', 'role:SuperAdmin,Admin,Manager'])->group(function () {
+    Route::get('/users', [UserController::class, 'index'])->name('users.index');
+});
+
+Route::middleware(['auth', 'role:SuperAdmin,Admin,Manager'])->group(function () {
+    Route::get('/users/{user}', [UserController::class, 'show'])->name('users.show');
+});
+
+Route::middleware(['auth', 'role:SuperAdmin,Admin'])->group(function () {
+    Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
+    Route::patch('/users/{user}', [UserController::class, 'update'])->name('users.update');
+});

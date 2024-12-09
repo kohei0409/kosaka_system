@@ -8,6 +8,15 @@ use App\Models\Group;
 
 class UserController extends Controller
 {
+
+    public function index()
+    {
+        // ユーザー一覧を取得
+        $users = \App\Models\User::with('role', 'group')->paginate(10);
+
+        return view('users.index', compact('users'));
+    }
+
     public function create()
     {
         $currentUserRole = auth()->user()->role->name;
@@ -53,4 +62,32 @@ class UserController extends Controller
 
         return redirect()->route('dashboard')->with('success', 'User created successfully.');
     }
+
+    public function show(\App\Models\User $user)
+    {
+        return view('users.show', compact('user'));
+    }
+
+    public function edit(\App\Models\User $user)
+    {
+        $roles = \App\Models\Role::all();
+        $groups = \App\Models\Group::all();
+
+        return view('users.edit', compact('user', 'roles', 'groups'));
+    }
+
+    public function update(Request $request, \App\Models\User $user)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
+            'role_id' => 'required|exists:roles,id',
+            'group_id' => 'nullable|exists:groups,id',
+        ]);
+
+        $user->update($request->only('name', 'email', 'role_id', 'group_id'));
+
+        return redirect()->route('users.show', $user->id)->with('success', 'ユーザー情報を更新しました。');
+    }
+
 }

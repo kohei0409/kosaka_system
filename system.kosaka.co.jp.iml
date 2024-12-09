@@ -2,7 +2,14 @@
 <module type="WEB_MODULE" version="4">
   <component name="NewModuleRootManager" inherit-compiler-output="true">
     <exclude-output />
-    <content url="file://$USER_HOME$/アドトラスト Dropbox/アドトラスト チームフォルダ/サーバ管理/コサカ/www.kosaka.co.jp/system.kosaka.co.jp" />
+    <content url="file://$USER_HOME$/アドトラスト Dropbox/アドトラスト チームフォルダ/サーバ管理/コサカ/www.kosaka.co.jp/system.kosaka.co.jp">
+      <sourceFolder url="file://$USER_HOME$/アドトラスト Dropbox/アドトラスト チームフォルダ/サーバ管理/コサカ/www.kosaka.co.jp/system.kosaka.co.jp/app" isTestSource="false" packagePrefix="App\" />
+      <sourceFolder url="file://$USER_HOME$/アドトラスト Dropbox/アドトラスト チームフォルダ/サーバ管理/コサカ/www.kosaka.co.jp/system.kosaka.co.jp/database/factories" isTestSource="false" packagePrefix="Database\Factories\" />
+      <sourceFolder url="file://$USER_HOME$/アドトラスト Dropbox/アドトラスト チームフォルダ/サーバ管理/コサカ/www.kosaka.co.jp/system.kosaka.co.jp/database/seeders" isTestSource="false" packagePrefix="Database\Seeders\" />
+      <sourceFolder url="file://$USER_HOME$/アドトラスト Dropbox/アドトラスト チームフォルダ/サーバ管理/コサカ/www.kosaka.co.jp/system.kosaka.co.jp/tests" isTestSource="true" packagePrefix="Tests\" />
+      <excludeFolder url="file://$USER_HOME$/アドトラスト Dropbox/アドトラスト チームフォルダ/サーバ管理/コサカ/www.kosaka.co.jp/system.kosaka.co.jp/storage/app" />
+      <excludeFolder url="file://$USER_HOME$/アドトラスト Dropbox/アドトラスト チームフォルダ/サーバ管理/コサカ/www.kosaka.co.jp/system.kosaka.co.jp/storage/framework" />
+    </content>
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
 </module>
