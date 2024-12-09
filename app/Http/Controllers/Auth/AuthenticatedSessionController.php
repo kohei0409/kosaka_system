@@ -29,7 +29,21 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(RouteServiceProvider::HOME);
+        // ログインユーザーの役割に基づいてリダイレクト
+        $user = Auth::user();
+
+        switch ($user->role->name) {
+            case 'SuperAdmin':
+                return redirect()->route('dashboard.superadmin');
+            case 'Admin':
+                return redirect()->route('dashboard.admin');
+            case 'Manager':
+                return redirect()->route('dashboard.manager');
+            case 'User':
+                return redirect()->route('dashboard.user');
+            default:
+                return redirect('/unauthorized');
+        }
     }
 
     /**

@@ -28,8 +28,8 @@
             @endif
 
             <!-- Page Content -->
-            <main>
-                {{ $slot }}
+            <main style="color: white;">
+                @yield('content') <!-- ここを変更 -->
             </main>
         </div>
     </body>
