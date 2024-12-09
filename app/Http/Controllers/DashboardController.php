@@ -4,12 +4,13 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 
+
 class DashboardController extends Controller
 {
     /**
      * Display the SuperAdmin dashboard.
      */
-    public function superAdmin()
+ public function superAdmin()
     {
         return view('dashboard.superadmin');
     }
@@ -37,4 +38,6 @@ class DashboardController extends Controller
     {
         return view('dashboard.user');
     }
+
+
 }

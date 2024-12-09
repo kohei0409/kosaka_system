@@ -23,28 +23,14 @@ class AuthenticatedSessionController extends Controller
     /**
      * Handle an incoming authentication request.
      */
-    public function store(LoginRequest $request): RedirectResponse
-    {
-        $request->authenticate();
+public function store(LoginRequest $request): RedirectResponse
+{
+    $request->authenticate();
 
-        $request->session()->regenerate();
+    $request->session()->regenerate();
 
-        // ログインユーザーの役割に基づいてリダイレクト
-        $user = Auth::user();
-
-        switch ($user->role->name) {
-            case 'SuperAdmin':
-                return redirect()->route('dashboard.superadmin');
-            case 'Admin':
-                return redirect()->route('dashboard.admin');
-            case 'Manager':
-                return redirect()->route('dashboard.manager');
-            case 'User':
-                return redirect()->route('dashboard.user');
-            default:
-                return redirect('/unauthorized');
-        }
-    }
+    return redirect()->intended('/redirect'); // 修正: 各権限のリダイレクトを適用
+}
 
     /**
      * Destroy an authenticated session.

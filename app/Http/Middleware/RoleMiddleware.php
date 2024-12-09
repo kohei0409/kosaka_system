@@ -3,31 +3,35 @@
 namespace App\Http\Middleware;
 
 use Closure;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class RoleMiddleware
 {
-    /**
-     * Handle an incoming request.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Closure  $next
-     * @param  string  $role
-     * @return mixed
-     */
-    public function handle($request, Closure $next, $role)
+    public function handle(Request $request, Closure $next, ...$roles)
     {
-        // ユーザーがログインしていない場合
-        if (!Auth::check()) {
-            return redirect('/login'); // ログインページにリダイレクト
+        $user = Auth::user();
+
+        // ユーザーが認証されていない場合
+        if (!$user) {
+            return response()->json(['error' => 'User not authenticated'], 403);
         }
 
-        // ユーザーの役割が一致しない場合
-        if (Auth::user()->role->name !== $role) {
-            return redirect('/unauthorized'); // 権限がないページにリダイレクト
+        // ユーザーにロールが設定されていない場合
+        if (!$user->role) {
+            return response()->json(['error' => 'User has no role'], 403);
         }
 
-        // 次のリクエスト処理に進む
+        // ユーザーのロールが許可されたロールに含まれていない場合
+        if (!in_array($user->role->name, $roles)) {
+            return response()->json([
+                'error' => 'Role not authorized',
+                'user_role' => $user->role->name,
+                'allowed_roles' => $roles,
+            ], 403);
+        }
+
+        // 条件をすべて満たしている場合
         return $next($request);
     }
 }

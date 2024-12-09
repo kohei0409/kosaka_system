@@ -21,6 +21,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role_id', // Role ID
+        'group_id', // Group ID
     ];
 
     /**
@@ -60,5 +62,10 @@ class User extends Authenticatable
     public function hasRole($role)
     {
         return $this->role->name === $role;
+    }
+
+    public function group()
+    {
+        return $this->belongsTo(Group::class);
     }
 }
