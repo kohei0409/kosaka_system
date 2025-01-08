@@ -33,16 +33,8 @@ class UserController extends Controller
 
     public function store(Request $request)
     {
-        // バリデーション
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8|confirmed',
-            'role_id' => 'required|exists:roles,id',
-            'group_id' => 'nullable|exists:groups,id',
-        ]);
 
-        // Admin が SuperAdmin を選択する場合はエラー
+
         $currentUserRole = auth()->user()->role->name;
         if ($currentUserRole === 'Admin') {
             $selectedRole = Role::find($request->role_id);
@@ -53,6 +45,7 @@ class UserController extends Controller
 
         // ユーザーの作成
         \App\Models\User::create([
+              'Code' => $request->Code,
             'name' => $request->name,
             'email' => $request->email,
             'password' => \Illuminate\Support\Facades\Hash::make($request->password),
@@ -79,13 +72,14 @@ class UserController extends Controller
     public function update(Request $request, \App\Models\User $user)
     {
         $request->validate([
+            'Code' => 'required|string|max:30',
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
             'role_id' => 'required|exists:roles,id',
             'group_id' => 'nullable|exists:groups,id',
         ]);
 
-        $user->update($request->only('name', 'email', 'role_id', 'group_id'));
+        $user->update($request->only('Code','name', 'email', 'role_id', 'group_id'));
 
         return redirect()->route('users.show', $user->id)->with('success', 'ユーザー情報を更新しました。');
     }

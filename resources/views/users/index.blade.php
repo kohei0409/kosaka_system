@@ -23,12 +23,12 @@
         <table class="w-full table-auto border-collapse">
             <thead>
             <tr class="bg-gray-800 text-white"> <!-- ヘッダーは白文字 -->
-                <th class="py-3 px-4 border" style="height: 40px">ID</th>
-                <th class="py-3 px-4 border">名前</th>
-                <th class="py-3 px-4 border">メールアドレス</th>
-                <th class="py-3 px-4 border">ロール</th>
-                <th class="py-3 px-4 border">グループ</th>
-                <th class="py-3 px-4 border">作成日</th>
+                <th class="py-3 px-2 border" style="height: 40px">ID</th>
+                   <th class="py-3 px-2 border">CODE</th>
+                <th class="py-3 px-2 border">名前</th>
+                <th class="py-3 px-2 border">メールアドレス</th>
+                <th class="py-3 px-2 border">ロール</th>
+                <th class="py-3 px-2 border">作成日</th>
             </tr>
             </thead>
             <tbody>
@@ -37,12 +37,12 @@
                 class="table-row border-t text-gray-800"
                 onclick="window.location='{{ route('users.show', $user->id) }}'"
             >
-                <td class="py-3 px-4 border" style="height: 50px">{{ $user->id }}</td>
-                <td class="py-3 px-4 border">{{ $user->name }}</td>
-                <td class="py-3 px-4 border">{{ $user->email }}</td>
-                <td class="py-3 px-4 border">{{ $user->role->name }}</td>
-                <td class="py-3 px-4 border">{{ $user->group->name ?? 'なし' }}</td>
-                <td class="py-3 px-4 border">{{ $user->created_at->format('Y-m-d') }}</td>
+                <td class="py-3 px-2 border" style="height: 50px">{{ $user->id }}</td>
+                  <td class="py-3 px-2 border">{{ $user->Code }}</td>
+                <td class="py-3 px-2 border">{{ $user->name }}</td>
+                <td class="py-3 px-2 border">{{ $user->email }}</td>
+                <td class="py-3 px-2 border">{{ $user->role->name }}</td>
+                <td class="py-3 px-2 border">{{ $user->created_at->format('Y-m-d') }}</td>
             </tr>
             @empty
             <tr>

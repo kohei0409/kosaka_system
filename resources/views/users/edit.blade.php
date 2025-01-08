@@ -8,6 +8,11 @@
         @csrf
         @method('PATCH')
 
+         <div class="mb-4">
+            <label for="Code" class="block text-sm font-medium text-white-700">コード</label>
+            <input type="text" name="Code" id="Code" value="{{ old('Code', $user->Code) }}" class="mt-1 block w-full border-gray-300 rounded-md text-gray-900" required>
+        </div>
+
         <div class="mb-4">
             <label for="name" class="block text-sm font-medium text-white-700">名前</label>
             <input type="text" name="name" id="name" value="{{ old('name', $user->name) }}" class="mt-1 block w-full border-gray-300 rounded-md text-gray-900" required>

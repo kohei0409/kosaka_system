@@ -11,6 +11,8 @@
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet"/>
     <link rel="stylesheet" href="https://www.kosaka.co.jp/system/resources/css/layout_style.css">
+      <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+
     <style>
         body {
             color: white;
@@ -28,7 +30,7 @@
         <div class="p-4">
             <h2 class="text-lg font-semibold">ユーザ管理</h2>
             <ul class="mt-4 space-y-2">
-                  @if (in_array(Auth::user()->role->name, ['SuperAdmin', 'Admin']))
+                @if (in_array(Auth::user()->role->name, ['SuperAdmin', 'Admin']))
                 <li>
                     <a href="{{ route('users.index') }}" class="block py-2 px-4 hover:bg-gray-700 rounded">
                         ユーザー一覧
@@ -40,6 +42,33 @@
                         ユーザー登録
                     </a>
                 </li>
+
+                <li>
+                    <a href="{{ route('salescourses.index') }}" class="block py-2 px-4 hover:bg-gray-700 rounded">
+                        営業コース
+                    </a>
+                </li>
+
+                <li>
+                    <a href="{{ route('users.create') }}" class="block py-2 px-4 hover:bg-gray-700 rounded">
+                        得意先データ
+                    </a>
+                </li>
+
+
+                <li>
+                    <a href="{{ route('users.create') }}" class="block py-2 px-4 hover:bg-gray-700 rounded">
+                        商品データ
+                    </a>
+                </li>
+
+                <li>
+                    <a href="{{ route('users.create') }}" class="block py-2 px-4 hover:bg-gray-700 rounded">
+                        受注データ
+                    </a>
+                </li>
+
+
                 @endif
 
             </ul>

@@ -13,8 +13,8 @@
 
     <div class="bg-white shadow-md rounded p-6">
         <div class="mb-4">
-            <h2 class="text-sm font-semibold text-gray-600">ID</h2>
-            <p class="text-gray-800">{{ $user->id }}</p>
+            <h2 class="text-sm font-semibold text-gray-600">Code</h2>
+            <p class="text-gray-800">{{ $user->Code }}</p>
         </div>
 
         <div class="mb-4">

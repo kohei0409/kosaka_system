@@ -5,7 +5,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
-
+use App\Http\Controllers\SalesCourseController;
 
 
 // 認証関連のルートをロード
@@ -13,7 +13,7 @@ require __DIR__ . '/auth.php';
 
 // ホームページ
 Route::get('/', function () {
-   return redirect('/login');
+    return redirect('/login');
 });
 
 // ダッシュボードリダイレクト
@@ -87,13 +87,16 @@ Route::get('/debug', function () {
 
 Route::middleware(['auth', 'role:SuperAdmin,Admin,Manager'])->group(function () {
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
-});
-
-Route::middleware(['auth', 'role:SuperAdmin,Admin,Manager'])->group(function () {
     Route::get('/users/{user}', [UserController::class, 'show'])->name('users.show');
+
 });
 
 Route::middleware(['auth', 'role:SuperAdmin,Admin'])->group(function () {
     Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
     Route::patch('/users/{user}', [UserController::class, 'update'])->name('users.update');
+
+    Route::get('/salescourses/upload', [SalesCourseController::class, 'showUploadForm'])->name('salescourses.upload');
+    Route::post('/salescourses/upload', [SalesCourseController::class, 'uploadCSV'])->name('salescourses.upload.post');
+    Route::resource('salescourses', SalesCourseController::class);
+
 });

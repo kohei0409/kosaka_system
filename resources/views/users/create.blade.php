@@ -13,6 +13,12 @@
     <form method="POST" action="{{ route('users.store') }}">
         @csrf
 
+                <div class="mb-4">
+            <label for="Code" class="block text-sm font-medium text-white-700">Code</label>
+            <input type="text" name="Code" id="Code" class="mt-1 block w-full border-gray-300 rounded-md text-input"
+                   required>
+        </div>
+
         <div class="mb-4">
             <label for="name" class="block text-sm font-medium text-white-700">名前</label>
             <input type="text" name="name" id="name" class="mt-1 block w-full border-gray-300 rounded-md text-input"
