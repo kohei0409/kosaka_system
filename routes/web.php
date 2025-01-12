@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\SalesCourseController;
 use App\Http\Controllers\CustomerController;
-
+use App\Http\Controllers\CommodityController;
 
 // 認証関連のルートをロード
 require __DIR__ . '/auth.php';
@@ -103,5 +103,10 @@ Route::middleware(['auth', 'role:SuperAdmin,Admin'])->group(function () {
     Route::get('/customers', [CustomerController::class, 'index'])->name('customers.index');
     Route::get('/customers/upload', [CustomerController::class, 'showUploadForm'])->name('customers.upload');
     Route::post('/customers/upload', [CustomerController::class, 'uploadCSV'])->name('customers.upload.post');
+
+    Route::get('/commodities', [CommodityController::class, 'index'])->name('commodities.index');
+    Route::get('/commodities/upload', [CommodityController::class, 'showUploadForm'])->name('commodities.upload.form');
+    Route::post('/commodities/upload', [CommodityController::class, 'upload'])->name('commodities.upload');
+
 
 });

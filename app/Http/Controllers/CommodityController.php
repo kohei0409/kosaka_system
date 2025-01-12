@@ -2,73 +2,202 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreCommodityRequest;
-use App\Http\Requests\UpdateCommodityRequest;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use App\Models\Commodity;
 
 class CommodityController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * 商品データの一覧を表示
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
-        return view('commodity.index');
+        $group = $request->input('group', 'all');
+        $search = $request->input('search', '');
 
+        $kanaRanges = [
+            'a' => ['ｱ', 'ｲ', 'ｳ', 'ｴ', 'ｵ'],
+            'k' => ['ｶ', 'ｷ', 'ｸ', 'ｹ', 'ｺ'],
+            's' => ['ｻ', 'ｼ', 'ｽ', 'ｾ', 'ｿ'],
+            't' => ['ﾀ', 'ﾁ', 'ﾂ', 'ﾃ', 'ﾄ'],
+            'n' => ['ﾅ', 'ﾆ', 'ﾇ', 'ﾈ', 'ﾉ'],
+            'h' => ['ﾊ', 'ﾋ', 'ﾌ', 'ﾍ', 'ﾎ'],
+            'm' => ['ﾏ', 'ﾐ', 'ﾑ', 'ﾒ', 'ﾓ'],
+            'y' => ['ﾔ', 'ﾕ', 'ﾖ'],
+            'r' => ['ﾗ', 'ﾘ', 'ﾙ', 'ﾚ', 'ﾛ'],
+            'w' => ['ﾜ', 'ｦ', 'ﾝ'],
+        ];
+
+        $query = Commodity::query();
+
+        // グループフィルタリング
+        if ($group !== 'all' && isset($kanaRanges[$group])) {
+            $query->where(function ($q) use ($kanaRanges, $group) {
+                foreach ($kanaRanges[$group] as $kana) {
+                    $q->orWhere('ProductNameKana', 'LIKE', $kana . '%');
+                }
+            });
+        }
+
+
+        // 検索フィルタリング
+        if ($search) {
+            // 検索キーワードを正規化（半角カナを全角カナに変換）
+            $normalizedSearch = mb_convert_kana($search, 'k'); // 'k' は全角カナを半角カナに変換
+
+            $query->where(function ($q) use ($search, $normalizedSearch) {
+                // 正規化されたデータベースの列と検索キーワードで比較
+                $q->whereRaw("CONVERT(ProductCode USING utf8mb4) LIKE ?", ['%' . $normalizedSearch . '%'])
+                    ->orWhereRaw("CONVERT(JANCode USING utf8mb4) LIKE ?", ['%' . $normalizedSearch . '%'])
+                    ->orWhereRaw("CONVERT(ManufacturerName USING utf8mb4) LIKE ?", ['%' . $normalizedSearch . '%'])
+                    ->orWhereRaw("CONVERT(ProductName USING utf8mb4) LIKE ?", ['%' . $normalizedSearch . '%'])
+                    ->orWhereRaw("CONVERT(Specification USING utf8mb4) LIKE ?", ['%' . $normalizedSearch . '%'])
+                    ->orWhereRaw("CONVERT(Abbreviation USING utf8mb4) LIKE ?", ['%' . $normalizedSearch . '%'])
+                    ->orWhereRaw("CONVERT(DentalFormulaName USING utf8mb4) LIKE ?", ['%' . $normalizedSearch . '%'])
+                    ->orWhereRaw("CONVERT(ProductNameKana USING utf8mb4) LIKE ?", ['%' . $normalizedSearch . '%'])
+                    ->orWhereRaw("CONVERT(Publisher USING utf8mb4) LIKE ?", ['%' . $normalizedSearch . '%'])
+                    ->orWhereRaw("CONVERT(PublisherName USING utf8mb4) LIKE ?", ['%' . $normalizedSearch . '%']);
+
+                // オリジナルの検索キーワードでも比較
+                $q->orWhere('ProductCode', 'LIKE', '%' . $search . '%')
+                    ->orWhere('JANCode', 'LIKE', '%' . $search . '%')
+                    ->orWhere('ManufacturerName', 'LIKE', '%' . $search . '%')
+                    ->orWhere('ProductName', 'LIKE', '%' . $search . '%')
+                    ->orWhere('Specification', 'LIKE', '%' . $search . '%')
+                    ->orWhere('Abbreviation', 'LIKE', '%' . $search . '%')
+                    ->orWhere('DentalFormulaName', 'LIKE', '%' . $search . '%')
+                    ->orWhere('ProductNameKana', 'LIKE', '%' . $search . '%')
+                    ->orWhere('Publisher', 'LIKE', '%' . $search . '%')
+                    ->orWhere('PublisherName', 'LIKE', '%' . $search . '%');
+            });
+        }
+
+
+        $commodities = $query->paginate(300);
+
+        return view('commodities.index', compact('commodities', 'group', 'search'));
     }
+
+    public function showUploadForm()
+    {
+        return view('commodities.upload'); // commodities/upload.blade.php というビューを表示
+    }
+
 
     /**
-     * Show the form for creating a new resource.
+     * CSVアップロード処理
      */
-    public function create()
-    {
-        //
-        return view('commodity.create');
+    public function upload(Request $request)
+{
+    // バリデーション
+    $request->validate([
+        'file' => 'required|file|mimes:csv,txt|max:512000', // 最大500MB
+    ]);
+
+    // ファイル取得
+    $file = $request->file('file');
+    $filePath = $file->getRealPath();
+
+    // PHPの最大実行時間を延長
+    ini_set('max_execution_time', 0); // 無制限
+    ini_set('memory_limit', '512M'); // 必要に応じて増加
+
+    try {
+        // ファイルのエンコーディング変換
+        $fileContent = file_get_contents($filePath);
+        $fileContent = mb_convert_encoding($fileContent, 'UTF-8', 'SJIS-win');
+        $tempFilePath = tempnam(sys_get_temp_dir(), 'csv');
+        file_put_contents($tempFilePath, $fileContent);
+
+        $fileStream = fopen($tempFilePath, 'r');
+        if (!$fileStream) {
+            return back()->with('error', 'ファイルを開けませんでした。');
+        }
+
+        $header = fgetcsv($fileStream); // ヘッダー行をスキップ
+
+        $batchSize = 1000; // バッチサイズ
+        $batch = [];
+
+        DB::beginTransaction();
+        while (($row = fgetcsv($fileStream)) !== false) {
+            $row = array_pad($row, 41, null); // 列数を補正
+
+            // データが既に存在しているか確認
+            $exists = DB::table('CommodityData')->where('ProductCode', $row[0])->exists();
+
+            if (!$exists) {
+                // バッチにデータ追加
+                $batch[] = [
+                    'ProductCode' => $row[0],
+                    'JANCode' => $row[1],
+                    'ManufacturerName' => $row[2],
+                    'ProductName' => $row[3],
+                    'Specification' => $row[4],
+                    'Abbreviation' => $row[5],
+                    'DentalFormulaName' => $row[6],
+                    'ProductNameKana' => $row[7],
+                    'Publisher' => $row[8],
+                    'PublisherName' => $row[9],
+                    'InternalName' => $row[10],
+                    'NormalQuantity1' => $row[11],
+                    'NormalQuantity2' => $row[12],
+                    'NormalQuantity3' => $row[13],
+                    'StandardUnitPrice1' => $row[14],
+                    'StandardUnitPrice2' => $row[15],
+                    'StandardUnitPrice3' => $row[16],
+                    'ListPrice' => $row[17],
+                    'PatientPrice' => $row[18],
+                    'ProductGroupCode' => $row[19],
+                    'ProductUnifiedCode' => $row[20],
+                    'UpdateDate' => $row[21],
+                    'UpdateCount' => $row[22],
+                    'StopClassification' => $row[23],
+                    'InvalidClassification' => $row[24],
+                    'PauseClassification' => $row[25],
+                    'StockClassification' => $row[26],
+                    'StockCount' => $row[27],
+                    'OutstandingOrderCount' => $row[28],
+                    'ShortageCount' => $row[29],
+                    'PendingOrderCount' => $row[30],
+                    'StockUpdateDate' => $row[31],
+                    'SaleQuantity1' => $row[32],
+                    'SaleQuantity2' => $row[33],
+                    'SaleQuantity3' => $row[34],
+                    'SaleUnitPrice1' => $row[35],
+                    'SaleUnitPrice2' => $row[36],
+                    'SaleUnitPrice3' => $row[37],
+                    'SaleStartDateTime' => $row[38],
+                    'SaleEndDateTime' => $row[39],
+                    'SaleInformationUpdateDate' => $row[40],
+                ];
+            }
+
+            // バッチサイズに達したらデータベースに挿入
+            if (count($batch) >= $batchSize) {
+                DB::table('CommodityData')->insert($batch);
+                $batch = []; // バッチをクリア
+            }
+        }
+
+        // 残りのデータを挿入
+        if (!empty($batch)) {
+            DB::table('CommodityData')->insert($batch);
+        }
+
+        DB::commit();
+    } catch (\Exception $e) {
+        DB::rollBack();
+        \Log::error('CSVアップロードエラー: ' . $e->getMessage());
+        return back()->with('error', 'CSVアップロード中にエラーが発生しました。');
+    } finally {
+        if (isset($fileStream)) {
+            fclose($fileStream);
+        }
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StoreCommodityRequest $request)
-    {
-        //
-        return view('commodity.store');
-    }
+    return redirect()->route('commodities.index')->with('success', 'CSVが正常にアップロードされました！');
+}
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Commodity $commodity)
-    {
-        //
-        return view('commodity.show');
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Commodity $commodity)
-    {
-        //
-        return view('commodity.edit');
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateCommodityRequest $request, Commodity $commodity)
-    {
-        //
-        return view('commodity.update');
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Commodity $commodity)
-    {
-        //
-        return view('commodity.destroy');
-    }
 }

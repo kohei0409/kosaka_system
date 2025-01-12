@@ -3,6 +3,8 @@
 @section('content')
 <div class="container-fluid">
 
+        <h1 class="mb-4">得意先データ</h1>
+
     <div class="row">
         <!-- グループボタン -->
         <div class="col-8 mb-4 text-start">
@@ -127,43 +129,7 @@
         display: block;
     }
 
-    .pagination {
-        display: flex;
-        justify-content: right;
-        flex-wrap: wrap;
-    }
 
-
-    .pagination-container {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 5px;
-        padding: 10px 0;
-    }
-
-    .page-link {
-        display: inline-block;
-        padding: 3px 15px;
-        border: 1px solid darkorange;
-        border-radius: 4px;
-        text-decoration: none;
-        color: darkorange;
-        background-color: #fff;
-        transition: background-color 0.3s, color 0.3s;
-    }
-
-    .page-link:hover {
-        background-color: #0056b3;
-        color: #fff;
-    }
-
-    .page-link.active {
-        background-color: darkorange;
-        color: #fff;
-        border-color: darkorange;
-        pointer-events: none;
-    }
 
 
 </style>

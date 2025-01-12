@@ -30,7 +30,7 @@
                     </a>
                 </li>
                 <li>
-                    <a href="{{ route('users.create') }}"
+                    <a href="{{ route('commodities.index') }}"
                        class="block py-2 px-4 hover:bg-gray-700 rounded text-sm font-medium">
                         商品データ
                     </a>
