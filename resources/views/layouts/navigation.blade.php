@@ -11,12 +11,7 @@
                         ユーザー一覧
                     </a>
                 </li>
-                <li>
-                    <a href="{{ route('users.create') }}"
-                       class="block py-2 px-4 hover:bg-gray-700 rounded text-sm font-medium">
-                        ユーザー登録
-                    </a>
-                </li>
+
                 <li>
                     <a href="{{ route('salescourses.index') }}"
                        class="block py-2 px-4 hover:bg-gray-700 rounded text-sm font-medium">
@@ -36,9 +31,15 @@
                     </a>
                 </li>
                 <li>
-                    <a href="{{ route('users.create') }}"
+                    <a href="{{ route('orderdata.index') }}"
                        class="block py-2 px-4 hover:bg-gray-700 rounded text-sm font-medium">
                         受注データ
+                    </a>
+                </li>
+                 <li>
+                    <a href="{{ route('orderdata.index') }}"
+                       class="block py-2 px-4 hover:bg-gray-700 rounded text-sm font-medium">
+                        受注残データ
                     </a>
                 </li>
                 @endif
@@ -125,7 +126,7 @@
 
     .flex-1 {
         overflow-x: auto; /* 横スクロールのサポート */
-        padding-left:90px;
+        padding-left: 90px;
 
     }
 

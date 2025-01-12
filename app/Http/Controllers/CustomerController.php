@@ -161,13 +161,13 @@ class CustomerController extends Controller
                         }
 
                         // 重複チェック
-                        $existingCustomer = DB::table('CutomerData')
+                        $existingCustomer = DB::table('CustomerData')
                             ->where('CustomerCode', $row[0])
                             ->where('BranchCode', $row[1])
                             ->first();
 
                         if (!$existingCustomer) {
-                            DB::table('CutomerData')->insert([
+                            DB::table('CustomerData')->insert([
                                 'CustomerCode' => $row[0],
                                 'BranchCode' => $row[1],
                                 'CustomerOfficialName1' => $row[2],

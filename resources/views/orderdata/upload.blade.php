@@ -2,17 +2,18 @@
 
 @section('content')
 <div class="container">
-    <h1>商品データ CSVアップロード</h1>    <!-- CSVアップロードフォーム -->
-    <form id="csv-upload-form" action="{{ route('commodities.upload') }}" method="POST" enctype="multipart/form-data">
+    <h1>注文データ CSVアップロード</h1> <!-- タイトル -->
+
+    <!-- CSVアップロードフォーム -->
+    <form id="csv-upload-form" action="{{ route('orderdata.upload') }}" method="POST" enctype="multipart/form-data">
         @csrf
         <div class="mb-3">
             <label for="file" class="form-label">CSVファイルを選択</label>
             <input type="file" name="file" class="form-control" required>
         </div>
-       <button id="upload-button" type="submit" class="btn btn-primary">アップロード</button>
+         <button id="upload-button" type="submit" class="btn btn-primary">アップロード</button>
     </form>
 
-</div>
 
     <!-- スピナー -->
     <div id="loading-spinner" style="display: none;">
@@ -84,7 +85,7 @@
                     alert('CSVアップロードが成功しました');
 
                     // indexページにリダイレクト
-                    window.location.href = "{{ route('commodities.index') }}";
+                    window.location.href = "{{ route('orderdata.index') }}";
                 },
                 error: function (xhr, status, error) {
                     // スピナーを非表示にする

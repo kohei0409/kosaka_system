@@ -3,11 +3,11 @@
     {{-- Previous Page Link --}}
     @if ($paginator->onFirstPage())
     <span class="page-link disabled" aria-disabled="true" aria-label="@lang('pagination.previous')">
-                &lsaquo;
-            </span>
+        &lsaquo;
+    </span>
     @else
-    <a href="{{ $paginator->previousPageUrl() }}" class="page-link" rel="prev"
-       aria-label="@lang('pagination.previous')">
+    <a href="{{ $paginator->previousPageUrl() }}{{ request()->has('search') ? '&search='.request('search') : '' }}"
+       class="page-link" rel="prev" aria-label="@lang('pagination.previous')">
         &lsaquo;
     </a>
     @endif
@@ -25,7 +25,9 @@
     @if ($page == $paginator->currentPage())
     <span class="page-link active" aria-current="page">{{ $page }}</span>
     @else
-    <a href="{{ $url }}" class="page-link">{{ $page }}</a>
+    <a href="{{ $url }}{{ request()->has('search') ? '&search='.request('search') : '' }}" class="page-link">
+        {{ $page }}
+    </a>
     @endif
     @endforeach
     @endif
@@ -33,24 +35,18 @@
 
     {{-- Next Page Link --}}
     @if ($paginator->hasMorePages())
-    <a href="{{ $paginator->nextPageUrl() }}" class="page-link" rel="next" aria-label="@lang('pagination.next')">
+    <a href="{{ $paginator->nextPageUrl() }}{{ request()->has('search') ? '&search='.request('search') : '' }}"
+       class="page-link" rel="next" aria-label="@lang('pagination.next')">
         &rsaquo;
     </a>
     @else
     <span class="page-link disabled" aria-disabled="true" aria-label="@lang('pagination.next')">
-                &rsaquo;
-            </span>
+        &rsaquo;
+    </span>
     @endif
 </nav>
 
 <style>
-    .pagination {
-        display: flex;
-        justify-content: right;
-        flex-wrap: wrap;
-    }
-
-
     .pagination-container {
         display: flex;
         justify-content: center;

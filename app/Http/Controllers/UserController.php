@@ -13,8 +13,15 @@ class UserController extends Controller
     {
         // ユーザー一覧を取得
         $users = \App\Models\User::with('role', 'group')->paginate(10);
+$currentUserRole = auth()->user()->role->name;
 
-        return view('users.index', compact('users'));
+        // Admin は SuperAdmin を表示しない
+        $roles = Role::when($currentUserRole === 'Admin', function ($query) {
+            $query->where('name', '!=', 'SuperAdmin');
+        })->get();
+
+        $groups = Group::all();
+        return view('users.index', compact('users','roles', 'groups'));
     }
 
     public function create()

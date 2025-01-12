@@ -10,7 +10,7 @@ class Customer extends Model
     use HasFactory;
 
     // テーブル名を指定
-    protected $table = 'CutomerData';
+    protected $table = 'CustomerData';
 
     // タイムスタンプを無効化
     public $timestamps = false;

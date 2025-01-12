@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\SalesCourseController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\CommodityController;
+use App\Http\Controllers\OrderDataController;
 
 // 認証関連のルートをロード
 require __DIR__ . '/auth.php';
@@ -108,5 +109,8 @@ Route::middleware(['auth', 'role:SuperAdmin,Admin'])->group(function () {
     Route::get('/commodities/upload', [CommodityController::class, 'showUploadForm'])->name('commodities.upload.form');
     Route::post('/commodities/upload', [CommodityController::class, 'upload'])->name('commodities.upload');
 
+    Route::get('/orderdata', [OrderDataController::class, 'index'])->name('orderdata.index');
+    Route::get('/orderdata/upload', [OrderDataController::class, 'showUploadForm'])->name('orderdata.upload.form');
+    Route::post('/orderdata/upload', [OrderDataController::class, 'upload'])->name('orderdata.upload');
 
 });
