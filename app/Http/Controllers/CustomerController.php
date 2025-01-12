@@ -5,15 +5,68 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreCustomerRequest;
 use App\Http\Requests\UpdateCustomerRequest;
 use App\Models\Customer;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+
 
 class CustomerController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        $group = $request->input('group', 'all');
+        $search = $request->input('search', '');
+
+        $kanaRanges = [
+            'a' => ['ｱ', 'ｲ', 'ｳ', 'ｴ', 'ｵ'],
+            'k' => ['ｶ', 'ｷ', 'ｸ', 'ｹ', 'ｺ'],
+            's' => ['ｻ', 'ｼ', 'ｽ', 'ｾ', 'ｿ'],
+            't' => ['ﾀ', 'ﾁ', 'ﾂ', 'ﾃ', 'ﾄ'],
+            'n' => ['ﾅ', 'ﾆ', 'ﾇ', 'ﾈ', 'ﾉ'],
+            'h' => ['ﾊ', 'ﾋ', 'ﾌ', 'ﾍ', 'ﾎ'],
+            'm' => ['ﾏ', 'ﾐ', 'ﾑ', 'ﾒ', 'ﾓ'],
+            'y' => ['ﾔ', 'ﾕ', 'ﾖ'],
+            'r' => ['ﾗ', 'ﾘ', 'ﾙ', 'ﾚ', 'ﾛ'],
+            'w' => ['ﾜ', 'ｦ', 'ﾝ'],
+        ];
+
+        $query = Customer::query();
+
+        // グループでフィルタリング
+        if ($group !== 'all' && isset($kanaRanges[$group])) {
+            $query->where(function ($q) use ($kanaRanges, $group) {
+                foreach ($kanaRanges[$group] as $kana) {
+                    $q->orWhere('CustomerKana', 'LIKE', $kana . '%');
+                }
+            });
+        }
+
+        // 検索キーワードでフィルタリング
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->Where('CustomerOfficialName1', 'LIKE', '%' . $search . '%')
+                    ->orWhere('CustomerOfficialName2', 'LIKE', '%' . $search . '%')
+                    ->orWhere('SalesCourse', 'LIKE', '%' . $search . '%')
+                    ->orWhere('ManagerCode', 'LIKE', '%' . $search . '%')
+                    ->orWhere('PhoneNumber', 'LIKE', '%' . $search . '%')
+                    ->orWhere('PhoneNumber2', 'LIKE', '%' . $search . '%')
+                    ->orWhere('PhoneNumber3', 'LIKE', '%' . $search . '%')
+                    ->orWhere('ManagerName', 'LIKE', '%' . $search . '%')
+                    ->orWhere('Fax', 'LIKE', '%' . $search . '%')
+                    ->orwhere('CustomerName', 'LIKE', '%' . $search . '%')
+                    ->orWhere('CustomerKana', 'LIKE', '%' . $search . '%')
+                    ->orWhere('Address1', 'LIKE', '%' . $search . '%')
+                    ->orWhere('Address2', 'LIKE', '%' . $search . '%')
+                    ->orWhere('PhoneNumber', 'LIKE', '%' . $search . '%');
+            });
+        }
+
+        $customers = $query->paginate(300);
+
+        return view('customers.index', compact('customers', 'group', 'search'));
     }
 
     /**
@@ -63,4 +116,110 @@ class CustomerController extends Controller
     {
         //
     }
+
+    public function showUploadForm()
+    {
+        return view('customers.upload');
+    }
+
+    public function uploadCSV(Request $request)
+    {
+        $expectedLength = 22; // 期待される列数
+
+        $request->validate([
+            'file' => 'required|file|mimes:csv,txt|max:51200', // 最大50MB
+        ]);
+
+        $file = $request->file('file');
+        $filePath = $file->getRealPath();
+
+        try {
+            $fileContent = mb_convert_encoding(file_get_contents($filePath), 'UTF-8', 'SJIS-win');
+            $data = array_map('str_getcsv', explode("\n", $fileContent));
+
+            if (!empty($data)) {
+                $header = $data[0];
+                unset($data[0]);
+
+                DB::beginTransaction();
+                try {
+                    foreach ($data as $row) {
+                        if (count(array_filter($row)) === 0) {
+                            continue; // 空白行をスキップ
+                        }
+
+                        if (count($row) > $expectedLength) {
+                            $row = array_slice($row, 0, $expectedLength);
+                        } elseif (count($row) < $expectedLength) {
+                            $row = array_pad($row, $expectedLength, null);
+                        }
+
+                        // 日付のバリデーション
+                        $updateDate = $row[19];
+                        if (!$this->isValidDate($updateDate)) {
+                            $updateDate = null; // 無効な日付はNULLにする
+                        }
+
+                        // 重複チェック
+                        $existingCustomer = DB::table('CutomerData')
+                            ->where('CustomerCode', $row[0])
+                            ->where('BranchCode', $row[1])
+                            ->first();
+
+                        if (!$existingCustomer) {
+                            DB::table('CutomerData')->insert([
+                                'CustomerCode' => $row[0],
+                                'BranchCode' => $row[1],
+                                'CustomerOfficialName1' => $row[2],
+                                'CustomerOfficialName2' => $row[3],
+                                'CustomerName' => $row[4],
+                                'CustomerKana' => $row[5],
+                                'RepresentativeName' => $row[6],
+                                'ManagerName' => $row[7],
+                                'PostalCode' => $row[8],
+                                'Address1' => $row[9],
+                                'Address2' => $row[10],
+                                'PhoneNumber' => $row[11],
+                                'PhoneNumber2' => $row[12],
+                                'PhoneNumber3' => $row[13],
+                                'Fax' => $row[14],
+                                'SalesCourse' => $row[15],
+                                'ManagerCode' => $row[16],
+                                'TransactionStopType' => $row[17],
+                                'TransactionEndType' => $row[18],
+                                'UpdateDate' => $updateDate, // バリデート済みの日付
+                                'UpdateCount' => $row[20],
+                                'InvalidType' => $row[21],
+                            ]);
+                        }
+                    }
+                    DB::commit();
+                } catch (\Exception $e) {
+                    DB::rollback();
+                    \Log::error('データベースエラー:', ['message' => $e->getMessage()]);
+                    return back()->with('error', 'CSVアップロード中にエラーが発生しました: ' . $e->getMessage());
+                }
+            }
+        } catch (\Exception $e) {
+            \Log::error('ファイル処理エラー:', ['message' => $e->getMessage()]);
+            return back()->with('error', 'ファイル処理中にエラーが発生しました: ' . $e->getMessage());
+        }
+
+        return redirect()->route('customers.index')->with('success', 'CSVが正常にアップロードされました！');
+    }
+
+    /**
+     * 有効な日付かどうかを判定するヘルパーメソッド
+     */
+    private function isValidDate($date)
+    {
+        if ($date === '0' || empty($date)) {
+            return false;
+        }
+
+        $d = \DateTime::createFromFormat('Ymd', $date);
+        return $d && $d->format('Ymd') === $date;
+    }
+
+
 }

@@ -11,7 +11,8 @@
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet"/>
     <link rel="stylesheet" href="https://www.kosaka.co.jp/system/resources/css/layout_style.css">
-      <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
 
     <style>
         body {
@@ -23,77 +24,15 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="font-sans antialiased">
-<div class="min-h-screen bg-gray-100 dark:bg-gray-900 flex">
+<div class="min-h-screen bg-gray-100 dark:bg-gray-900">
     <!-- Sidebar -->
-    @if (Auth::check() && in_array(Auth::user()->role->name, ['SuperAdmin', 'Admin', 'Manager']))
-    <aside class="w-64 bg-gray-800 text-white flex-shrink-0">
-        <div class="p-4">
-            <h2 class="text-lg font-semibold">ユーザ管理</h2>
-            <ul class="mt-4 space-y-2">
-                @if (in_array(Auth::user()->role->name, ['SuperAdmin', 'Admin']))
-                <li>
-                    <a href="{{ route('users.index') }}" class="block py-2 px-4 hover:bg-gray-700 rounded">
-                        ユーザー一覧
-                    </a>
-                </li>
-
-                <li>
-                    <a href="{{ route('users.create') }}" class="block py-2 px-4 hover:bg-gray-700 rounded">
-                        ユーザー登録
-                    </a>
-                </li>
-
-                <li>
-                    <a href="{{ route('salescourses.index') }}" class="block py-2 px-4 hover:bg-gray-700 rounded">
-                        営業コース
-                    </a>
-                </li>
-
-                <li>
-                    <a href="{{ route('users.create') }}" class="block py-2 px-4 hover:bg-gray-700 rounded">
-                        得意先データ
-                    </a>
-                </li>
-
-
-                <li>
-                    <a href="{{ route('users.create') }}" class="block py-2 px-4 hover:bg-gray-700 rounded">
-                        商品データ
-                    </a>
-                </li>
-
-                <li>
-                    <a href="{{ route('users.create') }}" class="block py-2 px-4 hover:bg-gray-700 rounded">
-                        受注データ
-                    </a>
-                </li>
-
-
-                @endif
-
-            </ul>
-        </div>
-    </aside>
-    @endif
 
 
     <!-- Main Content -->
     <div class="flex-1">
         @include('layouts.navigation')
 
-        <!-- Page Heading -->
-        @if (isset($header))
-        <header class="bg-white dark:bg-gray-800 shadow">
-            <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-                {{ $header }}
-            </div>
-        </header>
-        @endif
 
-        <!-- Page Content -->
-        <main class="p-6">
-            @yield('content')
-        </main>
     </div>
 </div>
 </body>

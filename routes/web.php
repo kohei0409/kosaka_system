@@ -6,6 +6,7 @@ use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\SalesCourseController;
+use App\Http\Controllers\CustomerController;
 
 
 // 認証関連のルートをロード
@@ -98,5 +99,9 @@ Route::middleware(['auth', 'role:SuperAdmin,Admin'])->group(function () {
     Route::get('/salescourses/upload', [SalesCourseController::class, 'showUploadForm'])->name('salescourses.upload');
     Route::post('/salescourses/upload', [SalesCourseController::class, 'uploadCSV'])->name('salescourses.upload.post');
     Route::resource('salescourses', SalesCourseController::class);
+
+    Route::get('/customers', [CustomerController::class, 'index'])->name('customers.index');
+    Route::get('/customers/upload', [CustomerController::class, 'showUploadForm'])->name('customers.upload');
+    Route::post('/customers/upload', [CustomerController::class, 'uploadCSV'])->name('customers.upload.post');
 
 });
