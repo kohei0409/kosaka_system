@@ -18,25 +18,33 @@ class OrderDataController extends Controller
 
         $query = OrderData::query();
 
-        // 検索フィルタリング
+// 検索フィルタリング
         if ($search) {
-            $query->where(function ($q) use ($search) {
-                $q->where('CustomerCode', 'LIKE', '%' . $search . '%')
-                    ->orWhere('ProductCode', 'LIKE', '%' . $search . '%')
-                    ->orWhere('JANCode', 'LIKE', '%' . $search . '%')
-                    ->orWhere('ManufacturerName', 'LIKE', '%' . $search . '%')
-                    ->orWhere('ProductName', 'LIKE', '%' . $search . '%')
-                    ->orWhere('Specification', 'LIKE', '%' . $search . '%')
-                    ->orWhere('CustomerName', 'LIKE', '%' . $search . '%')
-                    ->orWhere('SalesDate', 'LIKE', '%' . $search . '%')
-                    ->orWhere('InvoiceNumber', 'LIKE', '%' . $search . '%')
-                    ->orWhere('SalesCourse', 'LIKE', '%' . $search . '%')
-                    ->orWhere('SalesRepresentativeName', 'LIKE', '%' . $search . '%')
-                    ->orWhere('SalesCategory', 'LIKE', '%' . $search . '%')
-                    ->orWhere('UpdateDate', 'LIKE', '%' . $search . '%')
-                    ->orWhere('CheckUnique', 'LIKE', '%' . $search . '%');
+            // スペースでキーワードを分割（全角スペース・半角スペース対応）
+            $keywords = preg_split('/\s+/', trim($search));
+
+            $query->where(function ($q) use ($keywords) {
+                foreach ($keywords as $keyword) {
+                    $q->where(function ($subQ) use ($keyword) {
+                        $subQ->where('CustomerCode', 'LIKE', '%' . $keyword . '%')
+                            ->orWhere('ProductCode', 'LIKE', '%' . $keyword . '%')
+                            ->orWhere('JANCode', 'LIKE', '%' . $keyword . '%')
+                            ->orWhere('ManufacturerName', 'LIKE', '%' . $keyword . '%')
+                            ->orWhere('ProductName', 'LIKE', '%' . $keyword . '%')
+                            ->orWhere('Specification', 'LIKE', '%' . $keyword . '%')
+                            ->orWhere('CustomerName', 'LIKE', '%' . $keyword . '%')
+                            ->orWhere('SalesDate', 'LIKE', '%' . $keyword . '%')
+                            ->orWhere('InvoiceNumber', 'LIKE', '%' . $keyword . '%')
+                            ->orWhere('SalesCourse', 'LIKE', '%' . $keyword . '%')
+                            ->orWhere('SalesRepresentativeName', 'LIKE', '%' . $keyword . '%')
+                            ->orWhere('SalesCategory', 'LIKE', '%' . $keyword . '%')
+                            ->orWhere('UpdateDate', 'LIKE', '%' . $keyword . '%')
+                            ->orWhere('CheckUnique', 'LIKE', '%' . $keyword . '%');
+                    });
+                }
             });
         }
+
 
         $orders = $query->paginate(50)->appends(['search' => $search]);
         return view('orderdata.index', compact('orders', 'search'));
@@ -66,7 +74,7 @@ class OrderDataController extends Controller
 
         // PHPの最大実行時間を延長
         ini_set('max_execution_time', 0); // 無制限
-        ini_set('memory_limit', '512M'); // 必要に応じて増加
+        ini_set('memory_limit', '2000M'); // 必要に応じて増加
 
         try {
             // ファイルのエンコーディング変換

@@ -36,8 +36,8 @@
                         受注データ
                     </a>
                 </li>
-                 <li>
-                    <a href="{{ route('orderdata.index') }}"
+                <li>
+                    <a href="{{ route('backlogs.index') }}"
                        class="block py-2 px-4 hover:bg-gray-700 rounded text-sm font-medium">
                         受注残データ
                     </a>

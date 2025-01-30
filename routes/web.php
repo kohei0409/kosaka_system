@@ -3,12 +3,14 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\UserController;
-use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\SalesCourseController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\CommodityController;
 use App\Http\Controllers\OrderDataController;
+use App\Http\Controllers\BackLogController;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 // 認証関連のルートをロード
 require __DIR__ . '/auth.php';
@@ -21,15 +23,12 @@ Route::get('/', function () {
 // ダッシュボードリダイレクト
 Route::get('/redirect', function () {
     $role = Auth::user()->role->name ?? null;
-
     $routes = [
         'SuperAdmin' => '/superadmin',
         'Admin' => '/admin',
         'Manager' => '/manager',
         'User' => '/user',
     ];
-
-
     return isset($routes[$role]) ? redirect($routes[$role]) : redirect('/unauthorized');
 })->middleware('auth')->name('redirect');
 
@@ -47,27 +46,28 @@ Route::middleware('auth')->group(function () {
 
 // 各権限ごとのルート設定
 Route::middleware(['auth'])->group(function () {
-    // SuperAdmin ルート
+    // SuperAdmin & Admin のルート
     Route::middleware('role:SuperAdmin,Admin')->group(function () {
         Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
         Route::post('/users', [UserController::class, 'store'])->name('users.store');
     });
 
+    // SuperAdmin 専用ルート
     Route::middleware('role:SuperAdmin')->group(function () {
         Route::get('/superadmin', [DashboardController::class, 'superAdmin'])->name('dashboard.superadmin');
     });
 
-    // Admin ルート
+    // Admin 専用ルート
     Route::middleware('role:Admin')->group(function () {
         Route::get('/admin', [DashboardController::class, 'admin'])->name('dashboard.admin');
     });
 
-    // Manager ルート
+    // Manager 専用ルート
     Route::middleware('role:Manager')->group(function () {
         Route::get('/manager', [DashboardController::class, 'manager'])->name('dashboard.manager');
     });
 
-    // User ルート
+    // User 専用ルート
     Route::middleware('role:User')->group(function () {
         Route::get('/user', [DashboardController::class, 'user'])->name('dashboard.user');
     });
@@ -87,30 +87,44 @@ Route::get('/debug', function () {
     ]);
 })->middleware('auth');
 
+// 一般ユーザー用ルート
 Route::middleware(['auth', 'role:SuperAdmin,Admin,Manager'])->group(function () {
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
     Route::get('/users/{user}', [UserController::class, 'show'])->name('users.show');
-
 });
 
+// SuperAdmin & Admin 用ルート
 Route::middleware(['auth', 'role:SuperAdmin,Admin'])->group(function () {
     Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
     Route::patch('/users/{user}', [UserController::class, 'update'])->name('users.update');
 
+    // SalesCourse ルート
     Route::get('/salescourses/upload', [SalesCourseController::class, 'showUploadForm'])->name('salescourses.upload');
     Route::post('/salescourses/upload', [SalesCourseController::class, 'uploadCSV'])->name('salescourses.upload.post');
     Route::resource('salescourses', SalesCourseController::class);
 
+    // Customer ルート
     Route::get('/customers', [CustomerController::class, 'index'])->name('customers.index');
     Route::get('/customers/upload', [CustomerController::class, 'showUploadForm'])->name('customers.upload');
     Route::post('/customers/upload', [CustomerController::class, 'uploadCSV'])->name('customers.upload.post');
 
+    // Commodity ルート
     Route::get('/commodities', [CommodityController::class, 'index'])->name('commodities.index');
     Route::get('/commodities/upload', [CommodityController::class, 'showUploadForm'])->name('commodities.upload.form');
     Route::post('/commodities/upload', [CommodityController::class, 'upload'])->name('commodities.upload');
 
+    // OrderData ルート
     Route::get('/orderdata', [OrderDataController::class, 'index'])->name('orderdata.index');
     Route::get('/orderdata/upload', [OrderDataController::class, 'showUploadForm'])->name('orderdata.upload.form');
     Route::post('/orderdata/upload', [OrderDataController::class, 'upload'])->name('orderdata.upload');
 
+    // BackLog ルート
+    Route::get('/backlogs', [BackLogController::class, 'index'])->name('backlogs.index');
+    Route::get('/backlogs/upload', [BackLogController::class, 'showUploadForm'])->name('backlogs.upload');
+    Route::post('/backlogs/upload', [BackLogController::class, 'upload'])->name('backlogs.upload.post');
+});
+
+Route::get('/test-log', function () {
+    Log::error('テストログ: これは動作しているか？');
+    return 'ログを確認してください';
 });

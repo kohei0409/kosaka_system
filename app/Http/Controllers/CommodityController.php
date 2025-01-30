@@ -41,37 +41,45 @@ class CommodityController extends Controller
         }
 
 
-        // 検索フィルタリング
-        if ($search) {
-            // 検索キーワードを正規化（半角カナを全角カナに変換）
-            $normalizedSearch = mb_convert_kana($search, 'k'); // 'k' は全角カナを半角カナに変換
+       // 検索フィルタリング
+if ($search) {
+    // 検索キーワードを正規化（半角カナを全角カナに変換）
+    $normalizedSearch = mb_convert_kana($search, 'k'); // 'K' は半角カナを全角カナに変換
 
-            $query->where(function ($q) use ($search, $normalizedSearch) {
+    // スペースでキーワードを分割
+    $keywords = preg_split('/\s+/', trim($normalizedSearch));
+
+    $query->where(function ($q) use ($keywords) {
+        foreach ($keywords as $keyword) {
+            $q->where(function ($subQ) use ($keyword) {
                 // 正規化されたデータベースの列と検索キーワードで比較
-                $q->whereRaw("CONVERT(ProductCode USING utf8mb4) LIKE ?", ['%' . $normalizedSearch . '%'])
-                    ->orWhereRaw("CONVERT(JANCode USING utf8mb4) LIKE ?", ['%' . $normalizedSearch . '%'])
-                    ->orWhereRaw("CONVERT(ManufacturerName USING utf8mb4) LIKE ?", ['%' . $normalizedSearch . '%'])
-                    ->orWhereRaw("CONVERT(ProductName USING utf8mb4) LIKE ?", ['%' . $normalizedSearch . '%'])
-                    ->orWhereRaw("CONVERT(Specification USING utf8mb4) LIKE ?", ['%' . $normalizedSearch . '%'])
-                    ->orWhereRaw("CONVERT(Abbreviation USING utf8mb4) LIKE ?", ['%' . $normalizedSearch . '%'])
-                    ->orWhereRaw("CONVERT(DentalFormulaName USING utf8mb4) LIKE ?", ['%' . $normalizedSearch . '%'])
-                    ->orWhereRaw("CONVERT(ProductNameKana USING utf8mb4) LIKE ?", ['%' . $normalizedSearch . '%'])
-                    ->orWhereRaw("CONVERT(Publisher USING utf8mb4) LIKE ?", ['%' . $normalizedSearch . '%'])
-                    ->orWhereRaw("CONVERT(PublisherName USING utf8mb4) LIKE ?", ['%' . $normalizedSearch . '%']);
+                $subQ->whereRaw("CONVERT(ProductCode USING utf8mb4) LIKE ?", ['%' . $keyword . '%'])
+                    ->orWhereRaw("CONVERT(JANCode USING utf8mb4) LIKE ?", ['%' . $keyword . '%'])
+                    ->orWhereRaw("CONVERT(ManufacturerName USING utf8mb4) LIKE ?", ['%' . $keyword . '%'])
+                    ->orWhereRaw("CONVERT(ProductName USING utf8mb4) LIKE ?", ['%' . $keyword . '%'])
+                    ->orWhereRaw("CONVERT(Specification USING utf8mb4) LIKE ?", ['%' . $keyword . '%'])
+                    ->orWhereRaw("CONVERT(Abbreviation USING utf8mb4) LIKE ?", ['%' . $keyword . '%'])
+                    ->orWhereRaw("CONVERT(DentalFormulaName USING utf8mb4) LIKE ?", ['%' . $keyword . '%'])
+                    ->orWhereRaw("CONVERT(ProductNameKana USING utf8mb4) LIKE ?", ['%' . $keyword . '%'])
+                    ->orWhereRaw("CONVERT(Publisher USING utf8mb4) LIKE ?", ['%' . $keyword . '%'])
+                    ->orWhereRaw("CONVERT(PublisherName USING utf8mb4) LIKE ?", ['%' . $keyword . '%'])
 
-                // オリジナルの検索キーワードでも比較
-                $q->orWhere('ProductCode', 'LIKE', '%' . $search . '%')
-                    ->orWhere('JANCode', 'LIKE', '%' . $search . '%')
-                    ->orWhere('ManufacturerName', 'LIKE', '%' . $search . '%')
-                    ->orWhere('ProductName', 'LIKE', '%' . $search . '%')
-                    ->orWhere('Specification', 'LIKE', '%' . $search . '%')
-                    ->orWhere('Abbreviation', 'LIKE', '%' . $search . '%')
-                    ->orWhere('DentalFormulaName', 'LIKE', '%' . $search . '%')
-                    ->orWhere('ProductNameKana', 'LIKE', '%' . $search . '%')
-                    ->orWhere('Publisher', 'LIKE', '%' . $search . '%')
-                    ->orWhere('PublisherName', 'LIKE', '%' . $search . '%');
+                    // オリジナルの検索キーワードでも比較
+                    ->orWhere('ProductCode', 'LIKE', '%' . $keyword . '%')
+                    ->orWhere('JANCode', 'LIKE', '%' . $keyword . '%')
+                    ->orWhere('ManufacturerName', 'LIKE', '%' . $keyword . '%')
+                    ->orWhere('ProductName', 'LIKE', '%' . $keyword . '%')
+                    ->orWhere('Specification', 'LIKE', '%' . $keyword . '%')
+                    ->orWhere('Abbreviation', 'LIKE', '%' . $keyword . '%')
+                    ->orWhere('DentalFormulaName', 'LIKE', '%' . $keyword . '%')
+                    ->orWhere('ProductNameKana', 'LIKE', '%' . $keyword . '%')
+                    ->orWhere('Publisher', 'LIKE', '%' . $keyword . '%')
+                    ->orWhere('PublisherName', 'LIKE', '%' . $keyword . '%');
             });
         }
+    });
+}
+
 
 
         $commodities = $query->paginate(300);
