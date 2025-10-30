@@ -29,7 +29,7 @@
 
         <div class="mb-4">
             <h2 class="text-sm font-semibold text-gray-600">ロール</h2>
-            <p class="text-gray-800">{{ $user->role->name }}</p>
+            <p class="text-gray-800">{{ $user->role ? $user->role->name : '未設定' }}</p>
         </div>
 
         <div class="mb-4">

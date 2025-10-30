@@ -2,10 +2,14 @@
 
 @section('content')
 <div class="container-fluid">
+<div class="row">
+        <div class="col-6 text-stat"><h1 class="">得意先データ</h1></div>
+        <div class="col-6 text-end"><a href="{{ route('customers.upload') }}"
+                                       class="btn btn-sm btn-success">ファイルのアップロード</a></div>
+    </div>
 
-        <h1 class="mb-4">得意先データ</h1>
 
-    <div class="row">
+    <div class="row mt-3">
         <!-- グループボタン -->
         <div class="col-8 mb-4 text-start">
             <a href="{{ route('customers.index', ['group' => 'all']) }}"

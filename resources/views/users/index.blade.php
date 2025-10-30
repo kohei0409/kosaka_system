@@ -19,6 +19,7 @@
 <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
     <h1 class="text-lg font-bold mb-6 text-white-800">ユーザー一覧</h1> <!-- タイトルの文字色を修正 -->
 
+
     <div class="shadow-md rounded my-6">
         <table class="w-full table-auto border-collapse">
             <thead>
@@ -34,24 +35,24 @@
             <tbody>
             @forelse ($users as $user)
             @if ($user->Code != 0)
-            <tr
-                class="table-row border-t text-gray-800 cursor-pointer"
-                onclick="window.location='{{ route('users.show', $user->id) }}'"
-            >
+            <tr class="table-row border-t text-gray-800 cursor-pointer"
+                onclick="window.location='{{ route('users.show', $user->id) }}'">
                 <td class="py-3 px-2 border text-center">{{ $user->id }}</td>
                 <td class="py-3 px-2 border text-center">{{ $user->Code }}</td>
                 <td class="py-3 px-2 border">{{ $user->name }}</td>
                 <td class="py-3 px-2 border">{{ $user->email }}</td>
-                <td class="py-3 px-2 border text-center">{{ $user->role->name }}</td>
+                <td class="py-3 px-2 border text-center">
+                    {{ $user->role ? $user->role->name : '未設定' }}
+                </td>
                 <td class="py-3 px-2 border text-center">{{ $user->created_at->format('Y-m-d') }}</td>
             </tr>
             @endif
-
             @empty
             <tr>
-                <td colspan="6" class="py-3 px-4 border text-center text-gray-800">ユーザーが見つかりません。</td>
+                <td colspan="6" class="py-3 px-2 border text-center">ユーザーが見つかりません</td>
             </tr>
             @endforelse
+
             </tbody>
 
 

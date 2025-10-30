@@ -4,9 +4,9 @@
 <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
     <h1 class="text-lg font-bold mb-6">ユーザーを編集</h1>
 
-    <form method="POST" action="{{ route('users.update', $user->id) }}">
-        @csrf
-        @method('PATCH')
+<form method="POST" action="{{ route('users.update', $user->id) }}">
+    @csrf
+    @method('PATCH')
 
         <div class="mb-4">
             <label for="Code" class="block text-sm font-medium text-white-700">コード</label>
@@ -37,25 +37,32 @@
             </select>
         </div>
 
+        <!-- パスワード変更フォーム -->
+       <div class="mb-4">
+        <label for="password" class="block text-sm font-medium text-gray-700">新しいパスワード</label>
+        <input type="password" name="password" id="password"
+               class="mt-1 block w-full border-gray-300 rounded-md text-gray-900">
+        <small class="text-gray-500">※ 変更しない場合は空のままにしてください。</small>
+    </div>
 
-        <button type="submit" class="bg-warning bg-indigo-600 text-black px-4 py-2 rounded-md hover:bg-indigo-500">
-            ユーザー情報を更新する
-        </button>
+    <div class="mb-4">
+        <label for="password_confirmation"
+               class="block text-sm font-medium text-gray-700">新しいパスワード（確認用）</label>
+        <input type="password" name="password_confirmation" id="password_confirmation"
+               class="mt-1 block w-full border-gray-300 rounded-md text-gray-900">
+    </div>
+
+    <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-500">
+        ユーザー情報を更新する
+    </button>
     </form>
 
-    <form class="text-end" method="POST" action="{{ route('users.update', $user->id) }}" style="margin-top: 100px">
+    <!-- ✅ ユーザー削除フォーム -->
+    <form class="text-end" method="POST" action="{{ route('users.destroy', $user->id) }}" style="margin-top: 100px">
         @csrf
-        @method('PATCH')
-        <input type="hidden" name="Code" id="Code" value="0"
-               class="mt-1 block w-full border-gray-300 rounded-md text-gray-900" required>
-        <input type="hidden" name="name" id="name" value="{{ old('name', $user->name) }}"
-               class="mt-1 block w-full border-gray-300 rounded-md text-gray-900" required>
-
-        <input type="hidden" name="email" id="email" value="{{ old('email', $user->email) }}"
-               class="mt-1 block w-full border-gray-300 rounded-md text-gray-900" required>
-
-        <input type="hidden" name="role_id" id="role_id" value="{{ $user->role_id }}">
-        <button style="background-color: #444" type="submit" class="btn brn-sm bg-indigo-600 text-black px-2 py-1 rounded-md hover:bg-indigo-500">
+        @method('DELETE')
+        <button style="background-color: #444" type="submit"
+                class="btn brn-sm bg-red-600 text-white px-2 py-1 rounded-md hover:bg-red-500">
             ユーザーを削除する
         </button>
     </form>

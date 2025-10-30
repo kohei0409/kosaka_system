@@ -2,9 +2,15 @@
 
 @section('content')
 <div class="container-fluid">
-    <h1 class="mb-4">商品データ管理</h1>
+
 
     <div class="row">
+        <div class="col-6 text-stat"><h1 class="">商品データ管理</h1></div>
+        <div class="col-6 text-end"><a href="{{ route('commodities.upload') }}"
+                                       class="btn btn-sm btn-success">ファイルのアップロード</a></div>
+    </div>
+
+    <div class="row mt-3">
         <!-- グループボタン -->
 
 

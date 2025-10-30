@@ -2,8 +2,15 @@
 
 @section('content')
 <div class="container-fluid">
-    <h1 class="mb-4">注文データ管理</h1>
 
+
+    <div class="row">
+        <div class="col-6 text-stat"><h1 class="">注文データ管理</h1></div>
+        <div class="col-6 text-end"><a href="{{ route('orderdata.upload') }}"
+                                       class="btn btn-sm btn-success">ファイルのアップロード</a></div>
+    </div>
+
+    <div class="row mt-3">
     <div class="row">
         <!-- 検索フォーム -->
         <div class="col-6 offset-3 mb-4">
@@ -44,7 +51,7 @@
                     <th style="white-space: nowrap;">ロット番号</th>
                     <th style="white-space: nowrap;">シリアル番号</th>
                     <th style="white-space: nowrap;">得意先名</th>
-                    <th style="white-space: nowrap;">売上日</th>
+                    <th style="white-space: nowrap;">受注日</th>
                     <th style="white-space: nowrap;">伝票番号</th>
                     <th style="white-space: nowrap;">行番号</th>
                     <th style="white-space: nowrap;">営業コース</th>
@@ -90,6 +97,7 @@
                 </tbody>
             </table>
         </div>
+
 
         <!-- ページネーション（下部） -->
         <div class="col-12 text-end py-3 bg-light">

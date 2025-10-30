@@ -5,6 +5,21 @@
             <h2 class="text-lg font-semibold">ユーザ管理</h2>
             <ul class="mt-4 space-y-2">
                 @if (in_array(Auth::user()->role->name, ['SuperAdmin', 'Admin']))
+
+                 <li>
+                    <a href="{{ route('alert.index') }}"
+                       class="block py-2 px-4 hover:bg-gray-700 rounded text-sm font-medium">
+                       アラート機能
+                    </a>
+                </li>
+
+                  <li>
+                    <a href="{{ route('daily_reports.index') }}"
+                       class="block py-2 px-4 hover:bg-gray-700 rounded text-sm font-medium">
+                        日報
+                    </a>
+                </li>
+
                 <li>
                     <a href="{{ route('users.index') }}"
                        class="block py-2 px-4 hover:bg-gray-700 rounded text-sm font-medium">

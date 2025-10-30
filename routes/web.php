@@ -8,9 +8,13 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\CommodityController;
 use App\Http\Controllers\OrderDataController;
 use App\Http\Controllers\BackLogController;
+use App\Http\Controllers\DailyReportController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\SettingController;
+
+// ← これを追加
 
 // 認証関連のルートをロード
 require __DIR__ . '/auth.php';
@@ -82,7 +86,7 @@ Route::get('/unauthorized', function () {
 Route::get('/debug', function () {
     $user = auth()->user();
     return response()->json([
-        'user' => $user,
+        'user' => $user,1
         'role' => $user->role->name ?? 'No Role',
     ]);
 })->middleware('auth');
@@ -94,9 +98,9 @@ Route::middleware(['auth', 'role:SuperAdmin,Admin,Manager'])->group(function () 
 });
 
 // SuperAdmin & Admin 用ルート
+// ユーザー管理ルート（SuperAdmin & Admin 用）
 Route::middleware(['auth', 'role:SuperAdmin,Admin'])->group(function () {
-    Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
-    Route::patch('/users/{user}', [UserController::class, 'update'])->name('users.update');
+    Route::resource('users', UserController::class); // ✅ これを追加
 
     // SalesCourse ルート
     Route::get('/salescourses/upload', [SalesCourseController::class, 'showUploadForm'])->name('salescourses.upload');
@@ -122,7 +126,20 @@ Route::middleware(['auth', 'role:SuperAdmin,Admin'])->group(function () {
     Route::get('/backlogs', [BackLogController::class, 'index'])->name('backlogs.index');
     Route::get('/backlogs/upload', [BackLogController::class, 'showUploadForm'])->name('backlogs.upload');
     Route::post('/backlogs/upload', [BackLogController::class, 'upload'])->name('backlogs.upload.post');
+
+    // ✅ `daily_reports` の RESTful ルートを設定
+    Route::resource('daily_reports', DailyReportController::class);
+
+    Route::post('/daily-reports/{report}/read', [DailyReportController::class, 'markAsRead'])->name('daily_reports.read');
+    Route::post('/daily-reports/{report}/comment', [DailyReportController::class, 'addComment'])->name('daily_reports.comment');
+    Route::post('/daily_reports/{id}/comment', [DailyReportController::class, 'addComment'])->name('daily_reports.comment');
+
+    Route::patch('/daily_reports/{id}/comment/{commentIndex}', [DailyReportController::class, 'updateComment'])->name('daily_reports.updateComment');
+    Route::delete('/daily_reports/{id}/comment/{commentIndex}', [DailyReportController::class, 'deleteComment'])->name('daily_reports.deleteComment');
+    Route::get('/alert', [SettingController::class, 'alert'])->name('alert.index');
+    Route::post('/alert', [SettingController::class, 'updateAlert'])->name('alert.update');
 });
+
 
 Route::get('/test-log', function () {
     Log::error('テストログ: これは動作しているか？');

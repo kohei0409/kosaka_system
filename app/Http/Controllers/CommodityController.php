@@ -96,7 +96,10 @@ if ($search) {
     /**
      * CSVアップロード処理
      */
-    public function upload(Request $request)
+   /**
+ * CSVアップロード処理（全項目チェック・更新対応版）
+ */
+public function upload(Request $request)
 {
     // バリデーション
     $request->validate([
@@ -125,76 +128,105 @@ if ($search) {
 
         $header = fgetcsv($fileStream); // ヘッダー行をスキップ
 
-        $batchSize = 1000; // バッチサイズ
-        $batch = [];
+        $insertCount = 0;
+        $updateCount = 0;
+        $skipCount = 0;
 
         DB::beginTransaction();
         while (($row = fgetcsv($fileStream)) !== false) {
             $row = array_pad($row, 41, null); // 列数を補正
 
-            // データが既に存在しているか確認
-            $exists = DB::table('CommodityData')->where('ProductCode', $row[0])->exists();
+            // 新しいデータを配列として準備
+            $newData = [
+                'ProductCode' => $row[0],
+                'JANCode' => $row[1],
+                'ManufacturerName' => $row[2],
+                'ProductName' => $row[3],
+                'Specification' => $row[4],
+                'Abbreviation' => $row[5],
+                'DentalFormulaName' => $row[6],
+                'ProductNameKana' => $row[7],
+                'Publisher' => $row[8],
+                'PublisherName' => $row[9],
+                'InternalName' => $row[10],
+                'NormalQuantity1' => $row[11],
+                'NormalQuantity2' => $row[12],
+                'NormalQuantity3' => $row[13],
+                'StandardUnitPrice1' => $row[14],
+                'StandardUnitPrice2' => $row[15],
+                'StandardUnitPrice3' => $row[16],
+                'ListPrice' => $row[17],
+                'PatientPrice' => $row[18],
+                'ProductGroupCode' => $row[19],
+                'ProductUnifiedCode' => $row[20],
+                'UpdateDate' => $row[21],
+                'UpdateCount' => $row[22],
+                'StopClassification' => $row[23],
+                'InvalidClassification' => $row[24],
+                'PauseClassification' => $row[25],
+                'StockClassification' => $row[26],
+                'StockCount' => $row[27],
+                'OutstandingOrderCount' => $row[28],
+                'ShortageCount' => $row[29],
+                'PendingOrderCount' => $row[30],
+                'StockUpdateDate' => $row[31],
+                'SaleQuantity1' => $row[32],
+                'SaleQuantity2' => $row[33],
+                'SaleQuantity3' => $row[34],
+                'SaleUnitPrice1' => $row[35],
+                'SaleUnitPrice2' => $row[36],
+                'SaleUnitPrice3' => $row[37],
+                'SaleStartDateTime' => $row[38],
+                'SaleEndDateTime' => $row[39],
+                'SaleInformationUpdateDate' => $row[40],
+            ];
 
-            if (!$exists) {
-                // バッチにデータ追加
-                $batch[] = [
-                    'ProductCode' => $row[0],
-                    'JANCode' => $row[1],
-                    'ManufacturerName' => $row[2],
-                    'ProductName' => $row[3],
-                    'Specification' => $row[4],
-                    'Abbreviation' => $row[5],
-                    'DentalFormulaName' => $row[6],
-                    'ProductNameKana' => $row[7],
-                    'Publisher' => $row[8],
-                    'PublisherName' => $row[9],
-                    'InternalName' => $row[10],
-                    'NormalQuantity1' => $row[11],
-                    'NormalQuantity2' => $row[12],
-                    'NormalQuantity3' => $row[13],
-                    'StandardUnitPrice1' => $row[14],
-                    'StandardUnitPrice2' => $row[15],
-                    'StandardUnitPrice3' => $row[16],
-                    'ListPrice' => $row[17],
-                    'PatientPrice' => $row[18],
-                    'ProductGroupCode' => $row[19],
-                    'ProductUnifiedCode' => $row[20],
-                    'UpdateDate' => $row[21],
-                    'UpdateCount' => $row[22],
-                    'StopClassification' => $row[23],
-                    'InvalidClassification' => $row[24],
-                    'PauseClassification' => $row[25],
-                    'StockClassification' => $row[26],
-                    'StockCount' => $row[27],
-                    'OutstandingOrderCount' => $row[28],
-                    'ShortageCount' => $row[29],
-                    'PendingOrderCount' => $row[30],
-                    'StockUpdateDate' => $row[31],
-                    'SaleQuantity1' => $row[32],
-                    'SaleQuantity2' => $row[33],
-                    'SaleQuantity3' => $row[34],
-                    'SaleUnitPrice1' => $row[35],
-                    'SaleUnitPrice2' => $row[36],
-                    'SaleUnitPrice3' => $row[37],
-                    'SaleStartDateTime' => $row[38],
-                    'SaleEndDateTime' => $row[39],
-                    'SaleInformationUpdateDate' => $row[40],
-                ];
+            // 商品コードで既存レコードを検索
+            $existingRecord = DB::table('CommodityData')
+                ->where('ProductCode', $row[0])
+                ->first();
+
+            if ($existingRecord) {
+                // 既存レコードがある場合、全項目を比較
+                $isDifferent = false;
+
+                foreach ($newData as $key => $value) {
+                    // NULL値の処理を考慮して比較
+                    if ($existingRecord->$key != $value) {
+                        // どちらかがNULLの場合の特別な処理
+                        if (($existingRecord->$key === null && $value !== null) ||
+                            ($existingRecord->$key !== null && $value === null) ||
+                            ($existingRecord->$key !== null && $value !== null && $existingRecord->$key != $value)) {
+                            $isDifferent = true;
+                            break;
+                        }
+                    }
+                }
+
+                if ($isDifferent) {
+                    // 変更がある場合は更新
+                    DB::table('CommodityData')
+                        ->where('ProductCode', $row[0])
+                        ->update($newData);
+                    $updateCount++;
+                } else {
+                    // 完全に同一の場合はスキップ
+                    $skipCount++;
+                }
+            } else {
+                // 新規レコードの場合は挿入
+                DB::table('CommodityData')->insert($newData);
+                $insertCount++;
             }
-
-            // バッチサイズに達したらデータベースに挿入
-            if (count($batch) >= $batchSize) {
-                DB::table('CommodityData')->insert($batch);
-                $batch = []; // バッチをクリア
-            }
-        }
-
-        // 残りのデータを挿入
-        if (!empty($batch)) {
-            DB::table('CommodityData')->insert($batch);
         }
 
         DB::commit();
+
+        $message = "CSVアップロードが完了しました。\n" .
+                   "新規登録: {$insertCount}件\n" .
+                   "更新: {$updateCount}件\n" .
+                   "スキップ: {$skipCount}件";
+
     } catch (\Exception $e) {
         DB::rollBack();
         \Log::error('CSVアップロードエラー: ' . $e->getMessage());
@@ -203,9 +235,12 @@ if ($search) {
         if (isset($fileStream)) {
             fclose($fileStream);
         }
+        if (isset($tempFilePath) && file_exists($tempFilePath)) {
+            unlink($tempFilePath);
+        }
     }
 
-    return redirect()->route('commodities.index')->with('success', 'CSVが正常にアップロードされました！');
+    return redirect()->route('commodities.index')->with('success', $message);
 }
 
 }

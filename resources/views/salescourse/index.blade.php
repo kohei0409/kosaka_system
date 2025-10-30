@@ -2,7 +2,11 @@
 
 @section('content')
 <div class="container">
-    <h1 class="my-4">営業コース</h1>
+    <div class="row">
+        <div class="col-6 text-stat"> <h1 class="my-4">営業コース</h1></div>
+        <div class="col-6 text-end"><a href="{{ route('salescourses.upload') }}" class="btn btn-sm btn-success">ファイルのアップロード</a></div>
+    </div>
+
 
     <div class="table-responsive">
         <table class="table table-striped table-bordered">
