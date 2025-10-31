@@ -281,28 +281,97 @@ class CustomerController extends Controller
             ], 400);
         }
 
-        DB::beginTransaction();
         try {
             // トークンを使用済みにする
             $deletionToken->markAsUsed();
 
-            // 全得意先を削除
-            $count = Customer::count();
-            Customer::query()->delete();
+            // 削除処理開始
+            $totalCount = Customer::count();
 
-            DB::commit();
+            if ($totalCount === 0) {
+                return response()->json([
+                    'success' => true,
+                    'message' => '削除対象のデータがありません。',
+                ]);
+            }
+
+            // 進捗IDを生成
+            $progressId = 'customer_delete_' . uniqid();
+
+            // 進捗情報を初期化
+            \Illuminate\Support\Facades\Cache::put($progressId, [
+                'total' => $totalCount,
+                'processed' => 0,
+                'status' => 'processing',
+            ], now()->addMinutes(10));
+
+            // チャンク処理で削除（1000件ずつ）
+            $chunkSize = 1000;
+            $processed = 0;
+
+            Customer::chunk($chunkSize, function ($customers) use ($progressId, &$processed, $totalCount) {
+                $ids = $customers->pluck('id')->toArray();
+                Customer::whereIn('id', $ids)->delete();
+
+                $processed += count($ids);
+
+                // 進捗を更新
+                \Illuminate\Support\Facades\Cache::put($progressId, [
+                    'total' => $totalCount,
+                    'processed' => $processed,
+                    'percentage' => round(($processed / $totalCount) * 100, 2),
+                    'status' => 'processing',
+                ], now()->addMinutes(10));
+            });
+
+            // 完了状態に更新
+            \Illuminate\Support\Facades\Cache::put($progressId, [
+                'total' => $totalCount,
+                'processed' => $totalCount,
+                'percentage' => 100,
+                'status' => 'completed',
+            ], now()->addMinutes(10));
 
             return response()->json([
                 'success' => true,
-                'message' => "全得意先データ（{$count}件）を削除しました。",
+                'message' => "全得意先データ（{$totalCount}件）を削除しました。",
+                'progress_id' => $progressId,
             ]);
         } catch (\Exception $e) {
-            DB::rollBack();
             return response()->json([
                 'success' => false,
                 'message' => '削除処理中にエラーが発生しました: ' . $e->getMessage(),
             ], 500);
         }
+    }
+
+    /**
+     * 削除進捗状況を取得
+     */
+    public function deleteProgress(Request $request)
+    {
+        $progressId = $request->input('progress_id');
+
+        if (!$progressId) {
+            return response()->json([
+                'success' => false,
+                'message' => '進捗IDが指定されていません。',
+            ], 400);
+        }
+
+        $progress = \Illuminate\Support\Facades\Cache::get($progressId);
+
+        if (!$progress) {
+            return response()->json([
+                'success' => false,
+                'message' => '進捗情報が見つかりません。',
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'progress' => $progress,
+        ]);
     }
 
 }

@@ -113,6 +113,7 @@ Route::middleware(['auth', 'role:SuperAdmin,Admin'])->group(function () {
     Route::post('/customers/upload', [CustomerController::class, 'uploadCSV'])->name('customers.upload.post');
     Route::post('/customers/request-delete', [CustomerController::class, 'requestDelete'])->name('customers.request-delete');
     Route::post('/customers/confirm-delete', [CustomerController::class, 'confirmDelete'])->name('customers.confirm-delete');
+    Route::get('/customers/delete-progress', [CustomerController::class, 'deleteProgress'])->name('customers.delete-progress');
 
     // Commodity ルート
     Route::get('/commodities', [CommodityController::class, 'index'])->name('commodities.index');

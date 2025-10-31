@@ -171,6 +171,27 @@
                                placeholder="000000" maxlength="6" pattern="[0-9]{6}">
                     </div>
                 </div>
+                <div id="step3" class="delete-step" style="display: none;">
+                    <div class="alert alert-info" role="alert">
+                        <strong>削除処理中...</strong><br>
+                        データを削除しています。しばらくお待ちください。
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span id="progressText">処理中: 0 / 0 件</span>
+                            <span id="progressPercentage">0%</span>
+                        </div>
+                        <div class="progress" style="height: 30px;">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated"
+                                 role="progressbar"
+                                 id="progressBar"
+                                 style="width: 0%"
+                                 aria-valuenow="0"
+                                 aria-valuemin="0"
+                                 aria-valuemax="100">0%</div>
+                        </div>
+                    </div>
+                </div>
                 <div id="deleteMessage" class="alert" style="display: none;"></div>
             </div>
             <div class="modal-footer">
@@ -245,6 +266,11 @@ document.addEventListener('DOMContentLoaded', function() {
         this.disabled = true;
         const btn = this;
 
+        // 進捗画面を表示
+        document.getElementById('step2').style.display = 'none';
+        document.getElementById('step3').style.display = 'block';
+        btn.style.display = 'none';
+
         fetch('{{ route("customers.confirm-delete") }}', {
             method: 'POST',
             headers: {
@@ -259,6 +285,9 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
+                // 進捗バーを100%にする
+                updateProgress(100, data.message.match(/\d+/)[0], data.message.match(/\d+/)[0]);
+
                 showMessage(data.message, 'success');
                 setTimeout(() => {
                     location.reload();
@@ -266,13 +295,33 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 showMessage(data.message, 'danger');
                 btn.disabled = false;
+                document.getElementById('step3').style.display = 'none';
+                document.getElementById('step2').style.display = 'block';
+                btn.style.display = 'inline-block';
             }
         })
         .catch(error => {
             showMessage('エラーが発生しました: ' + error.message, 'danger');
             btn.disabled = false;
+            document.getElementById('step3').style.display = 'none';
+            document.getElementById('step2').style.display = 'block';
+            btn.style.display = 'inline-block';
         });
     });
+
+    function updateProgress(percentage, processed, total) {
+        const progressBar = document.getElementById('progressBar');
+        const progressPercentage = document.getElementById('progressPercentage');
+        const progressText = document.getElementById('progressText');
+
+        const safePercentage = Math.min(100, Math.max(0, percentage || 0));
+
+        progressBar.style.width = safePercentage + '%';
+        progressBar.setAttribute('aria-valuenow', safePercentage);
+        progressBar.textContent = safePercentage.toFixed(1) + '%';
+        progressPercentage.textContent = safePercentage.toFixed(1) + '%';
+        progressText.textContent = `処理中: ${processed || 0} / ${total || 0} 件`;
+    }
 
     function showMessage(message, type) {
         const messageDiv = document.getElementById('deleteMessage');
