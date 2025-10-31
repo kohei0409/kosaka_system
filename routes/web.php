@@ -86,7 +86,7 @@ Route::get('/unauthorized', function () {
 Route::get('/debug', function () {
     $user = auth()->user();
     return response()->json([
-        'user' => $user,1
+        'user' => $user,
         'role' => $user->role->name ?? 'No Role',
     ]);
 })->middleware('auth');
