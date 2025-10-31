@@ -305,15 +305,16 @@ class CustomerController extends Controller
                 'status' => 'processing',
             ], now()->addMinutes(10));
 
-            // チャンク処理で削除（1000件ずつ）
+            // 全IDを先に取得（チャンク削除の問題を回避）
+            $allIds = Customer::pluck('id')->toArray();
             $chunkSize = 1000;
             $processed = 0;
 
-            Customer::chunk($chunkSize, function ($customers) use ($progressId, &$processed, $totalCount) {
-                $ids = $customers->pluck('id')->toArray();
-                Customer::whereIn('id', $ids)->delete();
+            // IDを分割して削除
+            foreach (array_chunk($allIds, $chunkSize) as $idChunk) {
+                Customer::whereIn('id', $idChunk)->delete();
 
-                $processed += count($ids);
+                $processed += count($idChunk);
 
                 // 進捗を更新
                 \Illuminate\Support\Facades\Cache::put($progressId, [
@@ -322,7 +323,7 @@ class CustomerController extends Controller
                     'percentage' => round(($processed / $totalCount) * 100, 2),
                     'status' => 'processing',
                 ], now()->addMinutes(10));
-            });
+            }
 
             // 完了状態に更新
             \Illuminate\Support\Facades\Cache::put($progressId, [
