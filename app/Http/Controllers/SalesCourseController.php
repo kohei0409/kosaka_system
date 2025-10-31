@@ -12,6 +12,7 @@ use App\Models\SalesCourse;
 
 class SalesCourseController extends Controller
 {
+    use \App\Traits\BulkDeletable;
     /**
      * Display a listing of the resource.
      */
@@ -216,5 +217,18 @@ public function uploadCSV(Request $request)
     return redirect()->route('salescourses.index')->with('success', 'CSV uploaded successfully!');
 }
 
+    protected function getDataTypeCode(): string
+    {
+        return 'SALESCOURSE';
+    }
 
+    protected function getDataTypeName(): string
+    {
+        return '営業コースデータ';
+    }
+
+    protected function getModelClass(): string
+    {
+        return \App\Models\SalesCourse::class;
+    }
 }

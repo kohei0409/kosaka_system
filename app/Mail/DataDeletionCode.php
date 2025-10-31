@@ -9,9 +9,8 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 use App\Models\CustomerDeletionToken;
-use App\Models\Customer;
 
-class CustomerDeletionCode extends Mailable
+class DataDeletionCode extends Mailable
 {
     use Queueable, SerializesModels;
 
@@ -20,7 +19,7 @@ class CustomerDeletionCode extends Mailable
      */
     public function __construct(
         public CustomerDeletionToken $deletionToken,
-        public Customer $customer
+        public string $dataType
     ) {
         //
     }
@@ -31,7 +30,7 @@ class CustomerDeletionCode extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: '得意先削除確認コード - コサカ管理システム',
+            subject: "{$this->dataType}削除確認コード - コサカ管理システム",
         );
     }
 
@@ -41,7 +40,7 @@ class CustomerDeletionCode extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'emails.customer-deletion-code',
+            view: 'emails.data-deletion-code',
         );
     }
 

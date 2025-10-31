@@ -8,6 +8,8 @@ use App\Models\OrderData;
 
 class OrderDataController extends Controller
 {
+    use \App\Traits\BulkDeletable;
+
     /**
      * Display a listing of the resource.
      */
@@ -237,5 +239,20 @@ class OrderDataController extends Controller
         $orderData->delete();
 
         return redirect()->route('orderdata.index')->with('success', 'データが削除されました。');
+    }
+
+    protected function getDataTypeCode(): string
+    {
+        return 'ORDERDATA';
+    }
+
+    protected function getDataTypeName(): string
+    {
+        return '受注データ';
+    }
+
+    protected function getModelClass(): string
+    {
+        return \App\Models\OrderData::class;
     }
 }

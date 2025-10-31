@@ -9,6 +9,8 @@ use App\Models\BackLog;
 
 class BackLogController extends Controller
 {
+    use \App\Traits\BulkDeletable;
+
     /**
      * Display a listing of the resource.
      */
@@ -180,4 +182,18 @@ class BackLogController extends Controller
         return redirect()->route('backlogs.index')->with('success', 'CSVが正常にアップロードされました！');
     }
 
+    protected function getDataTypeCode(): string
+    {
+        return 'BACKLOG';
+    }
+
+    protected function getDataTypeName(): string
+    {
+        return '受注残データ';
+    }
+
+    protected function getModelClass(): string
+    {
+        return \App\Models\BackLog::class;
+    }
 }

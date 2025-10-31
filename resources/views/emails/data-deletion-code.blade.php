@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>得意先削除確認コード</title>
+    <title>{{ $dataType }}削除確認コード</title>
     <style>
         body {
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
@@ -41,12 +41,6 @@
             border-radius: 5px;
             color: #721c24;
         }
-        .customer-info {
-            background-color: #e7f3ff;
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 5px;
-        }
         .footer {
             margin-top: 30px;
             padding-top: 20px;
@@ -58,20 +52,11 @@
 </head>
 <body>
     <div class="header">
-        <h2>得意先削除確認コード</h2>
+        <h2>{{ $dataType }}削除確認コード</h2>
         <p>コサカ管理システム</p>
     </div>
 
-    <p>得意先データの削除リクエストを受け付けました。</p>
-
-    <div class="customer-info">
-        <h3>削除対象の得意先情報</h3>
-        <p><strong>得意先コード:</strong> {{ $customer->CustomerCode }}</p>
-        @if($customer->BranchCode)
-        <p><strong>支店コード:</strong> {{ $customer->BranchCode }}</p>
-        @endif
-        <p><strong>得意先名:</strong> {{ $customer->CustomerOfficialName1 }}</p>
-    </div>
+    <p>{{ $dataType }}の削除リクエストを受け付けました。</p>
 
     <div class="code-box">
         <p style="margin: 0 0 10px 0; font-size: 14px;">削除確認コード</p>
@@ -84,7 +69,7 @@
         <ul style="margin: 10px 0; padding-left: 20px;">
             <li>このコードは<strong>5分間のみ有効</strong>です</li>
             <li>コードは一度のみ使用可能です</li>
-            <li>削除を実行すると、データは完全に削除され復元できません</li>
+            <li>削除を実行すると、<strong>全{{ $dataType }}</strong>が完全に削除され復元できません</li>
             <li>このメールに心当たりがない場合は、システム管理者にお問い合わせください</li>
         </ul>
     </div>

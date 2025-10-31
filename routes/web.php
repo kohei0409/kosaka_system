@@ -115,20 +115,30 @@ Route::middleware(['auth', 'role:SuperAdmin,Admin'])->group(function () {
     Route::post('/customers/confirm-delete', [CustomerController::class, 'confirmDelete'])->name('customers.confirm-delete');
     Route::get('/customers/delete-progress', [CustomerController::class, 'deleteProgress'])->name('customers.delete-progress');
 
+    // SalesCourse 削除ルート
+    Route::post('/salescourses/request-delete', [SalesCourseController::class, 'requestDelete'])->name('salescourses.request-delete');
+    Route::post('/salescourses/confirm-delete', [SalesCourseController::class, 'confirmDelete'])->name('salescourses.confirm-delete');
+
     // Commodity ルート
     Route::get('/commodities', [CommodityController::class, 'index'])->name('commodities.index');
     Route::get('/commodities/upload', [CommodityController::class, 'showUploadForm'])->name('commodities.upload.form');
     Route::post('/commodities/upload', [CommodityController::class, 'upload'])->name('commodities.upload');
+    Route::post('/commodities/request-delete', [CommodityController::class, 'requestDelete'])->name('commodities.request-delete');
+    Route::post('/commodities/confirm-delete', [CommodityController::class, 'confirmDelete'])->name('commodities.confirm-delete');
 
     // OrderData ルート
     Route::get('/orderdata', [OrderDataController::class, 'index'])->name('orderdata.index');
     Route::get('/orderdata/upload', [OrderDataController::class, 'showUploadForm'])->name('orderdata.upload.form');
     Route::post('/orderdata/upload', [OrderDataController::class, 'upload'])->name('orderdata.upload');
+    Route::post('/orderdata/request-delete', [OrderDataController::class, 'requestDelete'])->name('orderdata.request-delete');
+    Route::post('/orderdata/confirm-delete', [OrderDataController::class, 'confirmDelete'])->name('orderdata.confirm-delete');
 
     // BackLog ルート
     Route::get('/backlogs', [BackLogController::class, 'index'])->name('backlogs.index');
     Route::get('/backlogs/upload', [BackLogController::class, 'showUploadForm'])->name('backlogs.upload');
     Route::post('/backlogs/upload', [BackLogController::class, 'upload'])->name('backlogs.upload.post');
+    Route::post('/backlogs/request-delete', [BackLogController::class, 'requestDelete'])->name('backlogs.request-delete');
+    Route::post('/backlogs/confirm-delete', [BackLogController::class, 'confirmDelete'])->name('backlogs.confirm-delete');
 
     // ✅ `daily_reports` の RESTful ルートを設定
     Route::resource('daily_reports', DailyReportController::class);

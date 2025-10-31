@@ -8,6 +8,8 @@ use App\Models\Commodity;
 
 class CommodityController extends Controller
 {
+    use \App\Traits\BulkDeletable;
+
     /**
      * 商品データの一覧を表示
      */
@@ -243,4 +245,18 @@ public function upload(Request $request)
     return redirect()->route('commodities.index')->with('success', $message);
 }
 
+    protected function getDataTypeCode(): string
+    {
+        return 'COMMODITY';
+    }
+
+    protected function getDataTypeName(): string
+    {
+        return '商品データ';
+    }
+
+    protected function getModelClass(): string
+    {
+        return \App\Models\Commodity::class;
+    }
 }
