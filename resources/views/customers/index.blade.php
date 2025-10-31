@@ -84,6 +84,7 @@
                     <th style="white-space: nowrap;">更新日</th>
                     <th style="white-space: nowrap;">更新回数</th>
                     <th style="white-space: nowrap;">無効区分</th>
+                    <th style="white-space: nowrap;">操作</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -112,6 +113,14 @@
                     <td style="white-space: nowrap;">{{ $customer->UpdateDate }}</td>
                     <td style="white-space: nowrap;">{{ $customer->UpdateCount }}</td>
                     <td style="white-space: nowrap;">{{ $customer->InvalidType }}</td>
+                    <td style="white-space: nowrap;">
+                        <button class="btn btn-sm btn-danger delete-customer-btn"
+                                data-customer-code="{{ $customer->CustomerCode }}"
+                                data-branch-code="{{ $customer->BranchCode }}"
+                                data-customer-name="{{ $customer->CustomerOfficialName1 }}">
+                            削除
+                        </button>
+                    </td>
                 </tr>
                 @endforeach
                 </tbody>
@@ -138,5 +147,157 @@
 
 </style>
 
+<!-- 削除確認モーダル -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteModalLabel">得意先削除確認</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="step1" class="delete-step">
+                    <p><strong>削除対象:</strong> <span id="customerNameDisplay"></span></p>
+                    <p class="text-danger">この操作は取り消せません。本当に削除しますか?</p>
+                    <p class="text-muted small">削除確認コードを <strong>sawachi@adtrust.jp</strong> に送信します。</p>
+                </div>
+                <div id="step2" class="delete-step" style="display: none;">
+                    <div class="alert alert-success" role="alert">
+                        <strong>削除コードを送信しました</strong><br>
+                        sawachi@adtrust.jp にメールを送信しました。<br>
+                        メールに記載された6桁のコードを入力してください。<br>
+                        <small class="text-muted">有効期限: <span id="expiresAt"></span></small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="deletionCode" class="form-label">削除確認コード (6桁)</label>
+                        <input type="text" class="form-control form-control-lg text-center" id="deletionCode"
+                               placeholder="000000" maxlength="6" pattern="[0-9]{6}">
+                    </div>
+                </div>
+                <div id="deleteMessage" class="alert" style="display: none;"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                <button type="button" class="btn btn-danger" id="requestDeleteBtn">削除コードを送信</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn" style="display: none;">削除実行</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let currentCustomerCode = '';
+    let currentBranchCode = '';
+    let currentCustomerName = '';
+
+    // 削除ボタンクリック
+    document.querySelectorAll('.delete-customer-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            currentCustomerCode = this.dataset.customerCode;
+            currentBranchCode = this.dataset.branchCode;
+            currentCustomerName = this.dataset.customerName;
+
+            document.getElementById('customerNameDisplay').textContent = currentCustomerName;
+
+            // モーダルをリセット
+            document.getElementById('step1').style.display = 'block';
+            document.getElementById('step2').style.display = 'none';
+            document.getElementById('requestDeleteBtn').style.display = 'inline-block';
+            document.getElementById('confirmDeleteBtn').style.display = 'none';
+            document.getElementById('deletionCode').value = '';
+            document.getElementById('deleteMessage').style.display = 'none';
+
+            // モーダルを表示
+            new bootstrap.Modal(document.getElementById('deleteModal')).show();
+        });
+    });
+
+    // 削除コード送信
+    document.getElementById('requestDeleteBtn').addEventListener('click', function() {
+        this.disabled = true;
+        const btn = this;
+
+        fetch('{{ route("customers.request-delete") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({
+                customer_code: currentCustomerCode,
+                branch_code: currentBranchCode
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('step1').style.display = 'none';
+                document.getElementById('step2').style.display = 'block';
+                btn.style.display = 'none';
+                document.getElementById('confirmDeleteBtn').style.display = 'inline-block';
+                document.getElementById('expiresAt').textContent = new Date(data.expires_at).toLocaleString('ja-JP');
+            } else {
+                showMessage(data.message, 'danger');
+            }
+        })
+        .catch(error => {
+            showMessage('エラーが発生しました: ' + error.message, 'danger');
+        })
+        .finally(() => {
+            btn.disabled = false;
+        });
+    });
+
+    // 削除実行
+    document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+        const code = document.getElementById('deletionCode').value;
+
+        if (code.length !== 6) {
+            showMessage('6桁のコードを入力してください', 'warning');
+            return;
+        }
+
+        this.disabled = true;
+        const btn = this;
+
+        fetch('{{ route("customers.confirm-delete") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({
+                customer_code: currentCustomerCode,
+                branch_code: currentBranchCode,
+                token: code
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showMessage(data.message, 'success');
+                setTimeout(() => {
+                    location.reload();
+                }, 2000);
+            } else {
+                showMessage(data.message, 'danger');
+                btn.disabled = false;
+            }
+        })
+        .catch(error => {
+            showMessage('エラーが発生しました: ' + error.message, 'danger');
+            btn.disabled = false;
+        });
+    });
+
+    function showMessage(message, type) {
+        const messageDiv = document.getElementById('deleteMessage');
+        messageDiv.className = 'alert alert-' + type;
+        messageDiv.textContent = message;
+        messageDiv.style.display = 'block';
+    }
+});
+</script>
 
 @endsection

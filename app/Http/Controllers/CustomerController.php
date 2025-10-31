@@ -221,5 +221,97 @@ class CustomerController extends Controller
         return $d && $d->format('Ymd') === $date;
     }
 
+    /**
+     * 削除リクエスト（削除コードをメール送信）
+     */
+    public function requestDelete(Request $request)
+    {
+        $request->validate([
+            'customer_code' => 'required|string',
+            'branch_code' => 'nullable|string',
+        ]);
+
+        $customer = Customer::where('CustomerCode', $request->customer_code)
+            ->where('BranchCode', $request->branch_code ?? '')
+            ->firstOrFail();
+
+        // 削除トークンを生成
+        $deletionToken = \App\Models\CustomerDeletionToken::createToken(
+            $request->customer_code,
+            $request->branch_code
+        );
+
+        // メール送信
+        \Illuminate\Support\Facades\Mail::to('sawachi@adtrust.jp')->send(
+            new \App\Mail\CustomerDeletionCode($deletionToken, $customer)
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => '削除確認コードを sawachi@adtrust.jp に送信しました。メールに記載されたコードを入力してください。',
+            'expires_at' => $deletionToken->expires_at->format('Y-m-d H:i:s'),
+        ]);
+    }
+
+    /**
+     * 削除実行（コード確認後）
+     */
+    public function confirmDelete(Request $request)
+    {
+        $request->validate([
+            'customer_code' => 'required|string',
+            'branch_code' => 'nullable|string',
+            'token' => 'required|string|size:6',
+        ]);
+
+        // トークンを検証
+        $deletionToken = \App\Models\CustomerDeletionToken::where('customer_code', $request->customer_code)
+            ->where('branch_code', $request->branch_code ?? null)
+            ->where('token', $request->token)
+            ->where('used', false)
+            ->first();
+
+        if (!$deletionToken) {
+            return response()->json([
+                'success' => false,
+                'message' => '無効な削除コードです。',
+            ], 400);
+        }
+
+        if (!$deletionToken->isValid()) {
+            return response()->json([
+                'success' => false,
+                'message' => '削除コードの有効期限が切れています。',
+            ], 400);
+        }
+
+        // 得意先を取得
+        $customer = Customer::where('CustomerCode', $request->customer_code)
+            ->where('BranchCode', $request->branch_code ?? '')
+            ->firstOrFail();
+
+        DB::beginTransaction();
+        try {
+            // トークンを使用済みにする
+            $deletionToken->markAsUsed();
+
+            // 得意先を削除
+            $customerName = $customer->CustomerOfficialName1;
+            $customer->delete();
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => "得意先「{$customerName}」を削除しました。",
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => '削除処理中にエラーが発生しました: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
 
 }

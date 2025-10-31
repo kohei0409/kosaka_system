@@ -111,6 +111,8 @@ Route::middleware(['auth', 'role:SuperAdmin,Admin'])->group(function () {
     Route::get('/customers', [CustomerController::class, 'index'])->name('customers.index');
     Route::get('/customers/upload', [CustomerController::class, 'showUploadForm'])->name('customers.upload');
     Route::post('/customers/upload', [CustomerController::class, 'uploadCSV'])->name('customers.upload.post');
+    Route::post('/customers/request-delete', [CustomerController::class, 'requestDelete'])->name('customers.request-delete');
+    Route::post('/customers/confirm-delete', [CustomerController::class, 'confirmDelete'])->name('customers.confirm-delete');
 
     // Commodity ルート
     Route::get('/commodities', [CommodityController::class, 'index'])->name('commodities.index');
