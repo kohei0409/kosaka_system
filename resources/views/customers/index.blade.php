@@ -226,7 +226,7 @@ document.addEventListener('DOMContentLoaded', function() {
             },
             body: JSON.stringify({
                 customer_code: currentCustomerCode,
-                branch_code: currentBranchCode
+                branch_code: currentBranchCode || null
             })
         })
         .then(response => response.json())
@@ -269,7 +269,7 @@ document.addEventListener('DOMContentLoaded', function() {
             },
             body: JSON.stringify({
                 customer_code: currentCustomerCode,
-                branch_code: currentBranchCode,
+                branch_code: currentBranchCode || null,
                 token: code
             })
         })

@@ -231,9 +231,18 @@ class CustomerController extends Controller
             'branch_code' => 'nullable|string',
         ]);
 
-        $customer = Customer::where('CustomerCode', $request->customer_code)
-            ->where('BranchCode', $request->branch_code ?? '')
-            ->firstOrFail();
+        // 得意先を取得（BranchCodeがnullまたは空の場合も正しく処理）
+        $query = Customer::where('CustomerCode', $request->customer_code);
+
+        if (!empty($request->branch_code)) {
+            $query->where('BranchCode', $request->branch_code);
+        } else {
+            $query->where(function($q) {
+                $q->whereNull('BranchCode')->orWhere('BranchCode', '');
+            });
+        }
+
+        $customer = $query->firstOrFail();
 
         // 削除トークンを生成
         $deletionToken = \App\Models\CustomerDeletionToken::createToken(
@@ -285,10 +294,18 @@ class CustomerController extends Controller
             ], 400);
         }
 
-        // 得意先を取得
-        $customer = Customer::where('CustomerCode', $request->customer_code)
-            ->where('BranchCode', $request->branch_code ?? '')
-            ->firstOrFail();
+        // 得意先を取得（BranchCodeがnullまたは空の場合も正しく処理）
+        $query = Customer::where('CustomerCode', $request->customer_code);
+
+        if (!empty($request->branch_code)) {
+            $query->where('BranchCode', $request->branch_code);
+        } else {
+            $query->where(function($q) {
+                $q->whereNull('BranchCode')->orWhere('BranchCode', '');
+            });
+        }
+
+        $customer = $query->firstOrFail();
 
         DB::beginTransaction();
         try {
