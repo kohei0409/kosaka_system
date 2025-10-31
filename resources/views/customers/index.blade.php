@@ -4,8 +4,10 @@
 <div class="container-fluid">
 <div class="row">
         <div class="col-6 text-stat"><h1 class="">得意先データ</h1></div>
-        <div class="col-6 text-end"><a href="{{ route('customers.upload') }}"
-                                       class="btn btn-sm btn-success">ファイルのアップロード</a></div>
+        <div class="col-6 text-end">
+            <a href="{{ route('customers.upload') }}" class="btn btn-sm btn-success">ファイルのアップロード</a>
+            <button type="button" class="btn btn-sm btn-danger ms-2" id="bulkDeleteBtn">全体削除</button>
+        </div>
     </div>
 
 
@@ -84,7 +86,6 @@
                     <th style="white-space: nowrap;">更新日</th>
                     <th style="white-space: nowrap;">更新回数</th>
                     <th style="white-space: nowrap;">無効区分</th>
-                    <th style="white-space: nowrap;">操作</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -113,14 +114,6 @@
                     <td style="white-space: nowrap;">{{ $customer->UpdateDate }}</td>
                     <td style="white-space: nowrap;">{{ $customer->UpdateCount }}</td>
                     <td style="white-space: nowrap;">{{ $customer->InvalidType }}</td>
-                    <td style="white-space: nowrap;">
-                        <button class="btn btn-sm btn-danger delete-customer-btn"
-                                data-customer-code="{{ $customer->CustomerCode }}"
-                                data-branch-code="{{ $customer->BranchCode }}"
-                                data-customer-name="{{ $customer->CustomerOfficialName1 }}">
-                            削除
-                        </button>
-                    </td>
                 </tr>
                 @endforeach
                 </tbody>
@@ -147,18 +140,22 @@
 
 </style>
 
-<!-- 削除確認モーダル -->
+<!-- 全体削除確認モーダル -->
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title" id="deleteModalLabel">得意先削除確認</h5>
+                <h5 class="modal-title" id="deleteModalLabel">得意先データ全体削除確認</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <div id="step1" class="delete-step">
-                    <p><strong>削除対象:</strong> <span id="customerNameDisplay"></span></p>
-                    <p class="text-danger">この操作は取り消せません。本当に削除しますか?</p>
+                    <div class="alert alert-danger" role="alert">
+                        <h5 class="alert-heading">警告: 全データ削除</h5>
+                        <p><strong>すべての得意先データを削除します。</strong></p>
+                        <hr>
+                        <p class="mb-0">この操作は取り消せません。本当にすべてのデータを削除しますか?</p>
+                    </div>
                     <p class="text-muted small">削除確認コードを <strong>sawachi@adtrust.jp</strong> に送信します。</p>
                 </div>
                 <div id="step2" class="delete-step" style="display: none;">
@@ -179,7 +176,7 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
                 <button type="button" class="btn btn-danger" id="requestDeleteBtn">削除コードを送信</button>
-                <button type="button" class="btn btn-danger" id="confirmDeleteBtn" style="display: none;">削除実行</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn" style="display: none;">全体削除実行</button>
             </div>
         </div>
     </div>
@@ -187,30 +184,18 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    let currentCustomerCode = '';
-    let currentBranchCode = '';
-    let currentCustomerName = '';
+    // 全体削除ボタンクリック
+    document.getElementById('bulkDeleteBtn').addEventListener('click', function() {
+        // モーダルをリセット
+        document.getElementById('step1').style.display = 'block';
+        document.getElementById('step2').style.display = 'none';
+        document.getElementById('requestDeleteBtn').style.display = 'inline-block';
+        document.getElementById('confirmDeleteBtn').style.display = 'none';
+        document.getElementById('deletionCode').value = '';
+        document.getElementById('deleteMessage').style.display = 'none';
 
-    // 削除ボタンクリック
-    document.querySelectorAll('.delete-customer-btn').forEach(button => {
-        button.addEventListener('click', function() {
-            currentCustomerCode = this.dataset.customerCode;
-            currentBranchCode = this.dataset.branchCode;
-            currentCustomerName = this.dataset.customerName;
-
-            document.getElementById('customerNameDisplay').textContent = currentCustomerName;
-
-            // モーダルをリセット
-            document.getElementById('step1').style.display = 'block';
-            document.getElementById('step2').style.display = 'none';
-            document.getElementById('requestDeleteBtn').style.display = 'inline-block';
-            document.getElementById('confirmDeleteBtn').style.display = 'none';
-            document.getElementById('deletionCode').value = '';
-            document.getElementById('deleteMessage').style.display = 'none';
-
-            // モーダルを表示
-            new bootstrap.Modal(document.getElementById('deleteModal')).show();
-        });
+        // モーダルを表示
+        new bootstrap.Modal(document.getElementById('deleteModal')).show();
     });
 
     // 削除コード送信
@@ -225,8 +210,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 'X-CSRF-TOKEN': '{{ csrf_token() }}'
             },
             body: JSON.stringify({
-                customer_code: currentCustomerCode,
-                branch_code: currentBranchCode || null
+                bulk_delete: true
             })
         })
         .then(response => response.json())
@@ -268,8 +252,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 'X-CSRF-TOKEN': '{{ csrf_token() }}'
             },
             body: JSON.stringify({
-                customer_code: currentCustomerCode,
-                branch_code: currentBranchCode || null,
+                bulk_delete: true,
                 token: code
             })
         })

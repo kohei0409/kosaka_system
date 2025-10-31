@@ -227,32 +227,21 @@ class CustomerController extends Controller
     public function requestDelete(Request $request)
     {
         $request->validate([
-            'customer_code' => 'required|string',
-            'branch_code' => 'nullable|string',
+            'bulk_delete' => 'required|boolean',
         ]);
 
-        // 得意先を取得（BranchCodeがnullまたは空の場合も正しく処理）
-        $query = Customer::where('CustomerCode', $request->customer_code);
+        // 全体削除用のトークンを生成（customer_code, branch_codeはnull）
+        $deletionToken = \App\Models\CustomerDeletionToken::createToken('ALL', null);
 
-        if (!empty($request->branch_code)) {
-            $query->where('BranchCode', $request->branch_code);
-        } else {
-            $query->where(function($q) {
-                $q->whereNull('BranchCode')->orWhere('BranchCode', '');
-            });
-        }
-
-        $customer = $query->firstOrFail();
-
-        // 削除トークンを生成
-        $deletionToken = \App\Models\CustomerDeletionToken::createToken(
-            $request->customer_code,
-            $request->branch_code
-        );
+        // 全体削除用のダミー顧客オブジェクトを作成
+        $dummyCustomer = new Customer();
+        $dummyCustomer->CustomerCode = 'ALL';
+        $dummyCustomer->BranchCode = null;
+        $dummyCustomer->CustomerOfficialName1 = '全得意先データ';
 
         // メール送信
         \Illuminate\Support\Facades\Mail::to('sawachi@adtrust.jp')->send(
-            new \App\Mail\CustomerDeletionCode($deletionToken, $customer)
+            new \App\Mail\CustomerDeletionCode($deletionToken, $dummyCustomer)
         );
 
         return response()->json([
@@ -268,14 +257,12 @@ class CustomerController extends Controller
     public function confirmDelete(Request $request)
     {
         $request->validate([
-            'customer_code' => 'required|string',
-            'branch_code' => 'nullable|string',
+            'bulk_delete' => 'required|boolean',
             'token' => 'required|string|size:6',
         ]);
 
-        // トークンを検証
-        $deletionToken = \App\Models\CustomerDeletionToken::where('customer_code', $request->customer_code)
-            ->where('branch_code', $request->branch_code ?? null)
+        // トークンを検証（全体削除用）
+        $deletionToken = \App\Models\CustomerDeletionToken::where('customer_code', 'ALL')
             ->where('token', $request->token)
             ->where('used', false)
             ->first();
@@ -294,33 +281,20 @@ class CustomerController extends Controller
             ], 400);
         }
 
-        // 得意先を取得（BranchCodeがnullまたは空の場合も正しく処理）
-        $query = Customer::where('CustomerCode', $request->customer_code);
-
-        if (!empty($request->branch_code)) {
-            $query->where('BranchCode', $request->branch_code);
-        } else {
-            $query->where(function($q) {
-                $q->whereNull('BranchCode')->orWhere('BranchCode', '');
-            });
-        }
-
-        $customer = $query->firstOrFail();
-
         DB::beginTransaction();
         try {
             // トークンを使用済みにする
             $deletionToken->markAsUsed();
 
-            // 得意先を削除
-            $customerName = $customer->CustomerOfficialName1;
-            $customer->delete();
+            // 全得意先を削除
+            $count = Customer::count();
+            Customer::query()->delete();
 
             DB::commit();
 
             return response()->json([
                 'success' => true,
-                'message' => "得意先「{$customerName}」を削除しました。",
+                'message' => "全得意先データ（{$count}件）を削除しました。",
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
